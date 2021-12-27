@@ -1,8 +1,7 @@
 from typing import Tuple
-from numpy import arange, zeros, concatenate
+from numpy import arange, concatenate
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from time import sleep
 import matplotlib.pyplot as plt
 
 from receiver import DeepQLearnerAgent
@@ -64,7 +63,6 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
                 avg_rewards_list.append(run_episode(env, agent, True, True))
                 i += j
         avg_rewards_list.append(run_episode(env, agent, True, False))
-        sleep(0.05)
     
     return avg_rewards_list, agent
 
