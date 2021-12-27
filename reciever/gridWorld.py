@@ -10,27 +10,11 @@ class GridWorld:
     """
 
     def __init__(self, p_term):
-        """
-        In GridWorld:
-        0 -> empty tile
-        1 -> wall
-        2 -> agent
-        3 -> goal
-        """
         self.p_term = p_term
         self.row = 5
         self.col = 5
-        self.grid = np.zeros((self.row, self.col))
-        self.agent_pos = (self.row//2, self.col//2)
-        self.grid[self.agent_pos] = 2
-        self.forbid = [((self.row//2, self.col//2))]
-        while True:
-            self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
-            if(self.goal not in self.forbid):
-                self.grid[self.goal] = 3
-                break
 
-    def act(self, action: int):
+    def step(self, action: int):
         """
         Action:
         0 -> N
@@ -69,7 +53,25 @@ class GridWorld:
         self.grid[next_pos] = 2
         self.agent_pos = next_pos
 
-
-if __name__ == '__main__':
-    grd = GridWorld(1)
-    print(grd.grid)
+    def reset():
+        """
+        In GridWorld:
+        0 -> empty tile
+        1 -> wall
+        2 -> agent
+        3 -> goal
+        """
+        self.grid = np.zeros((self.row, self.col))
+        self.agent_pos = (self.row//2, self.col//2)
+        self.grid[self.agent_pos] = 2
+        self.forbid = [((self.row//2, self.col//2))]
+        """
+        while True:
+            self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
+            if(self.goal not in self.forbid):
+                self.grid[self.goal] = 3
+                break
+        """
+        self.goal = (4,4)
+        self.grid[self.goal] = 3
+        return self.grid

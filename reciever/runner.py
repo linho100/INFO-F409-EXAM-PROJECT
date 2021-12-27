@@ -15,16 +15,22 @@ def run_episode(env: GridWorld, agents: DeepQLearnerAgent, training: bool) -> fl
     :param gamma: The discount factor.
     :return: The cumulative discounted reward.
     """
-    obs = env.grid
-    action = agent.act(training)
-    obs_prime, reward, done = env.act(actions)
-    if training:
-        agents.learn(obs, action, reward, done, obs_prime)
+    done = False
+    obs = env.reset()
+    cum_reward = 0.
+    t = 0
+    while not done:
+        action = agent.act(obs, training)
+        obs_prime, reward, done = env.step(actions)
+        if training:
+            agent.learn(obs, action, reward, done, obs_prime)
+        obs = new_obs
+        cum_reward += reward
+        t += 1
 
-    return (obs, action, reward, done, obs_prime)
+    return cum_reward/t
 
-
-def train_iql(env: MatrixGame, t_max: int, evaluate_every: int, num_evaluation_episodes: int,
+def train(env: MatrixGame, num_episodes: int, evaluate_every: int, num_evaluation_episodes: int,
               epsilon_max: float = 1, epsilon_min: float = 0.01,
               epsilon_decay: float = 0.999) -> Tuple[List[IQLAgent], ndarray, ndarray, list]:
     """
@@ -39,25 +45,14 @@ def train_iql(env: MatrixGame, t_max: int, evaluate_every: int, num_evaluation_e
     :return: Tuple containing the list of agents, the returns of all training episodes, the averaged evaluation
     return of each evaluation, and the list of the greedy joint action of each evaluation.
     """
-    agent = DeepQLearnerAgent(
+    agent = DeepQLearnerAgent(env, 2)
     evaluation_returns = np.zeros(t_max // evaluate_every)
     evaluation_joint_actions = np.zeros((t_max // evaluate_every, env.num_actions, env.num_actions))
-    returns = np.zeros(t_max)
-    for episode in range(t_max):
-        returns[episode], _ = run_episode(env, agents, True)
-
-        if (episode + 1) % evaluate_every == 0:
-            evaluation_step = episode // evaluate_every
-            cum_rewards_eval = np.zeros(num_evaluation_episodes)
-            prob_joint_action = np.zeros((env.num_actions, env.num_actions))
-            for eval_episode in range(num_evaluation_episodes):
-                cum_rewards_eval[eval_episode], joint_action = run_episode(env, agents, False)
-                prob_joint_action[joint_action[0]][[joint_action[1]]] += 1
-            evaluation_joint_actions[evaluation_step] = prob_joint_action/num_evaluation_episodes
-            evaluation_returns[evaluation_step] = np.mean(cum_rewards_eval)
-
-    return agents, returns, evaluation_returns, evaluation_joint_actions
-
+    avg_rewards_list = [] 
+    for i in range(num_episodes):
+        if i % 100 == 0:
+            print("Episode {} of {}".format(i + 1, num_episodes))
+        avg_rewards_list.append(run_episode(env, agent, True))
 
 
 if __name__ == '__main__':

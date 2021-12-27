@@ -10,7 +10,7 @@ from tensorflow.keras import backend
 import tensorflow as tf
 
 
-def create_nnet(n_cells: int, msg_dim: int) -> tf.keras.model.Sequential:
+def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> tf.keras.model.Sequential:
     """
     Function that returns an nnet
     :param n_cells: ....
@@ -22,7 +22,7 @@ def create_nnet(n_cells: int, msg_dim: int) -> tf.keras.model.Sequential:
     model.add(Dense(input_shape=(n_cells + msg_dim,), activation="sigmoid"))
     model.add(Dense(4, activation="softmax")) # Number of actions
 
-    model.compile(loss=custom_loss(), optimizer=Adam(learning_rate=0.001), metrics=["accuracy"])
+    model.compile(loss='mse', optimizer=RMSprop(learning_rate), metrics=["accuracy"])
 
     return model
 
@@ -32,7 +32,9 @@ class DeepQLearnerAgent:
     """
 
     def __init__(self,
-                 learning_rate: float,
+                 env,
+                 dim_msg,
+                 learning_rate: float = 0.1,
                  gamma: float,
                  epsilon_max: Optional[float] = 1,
                  epsilon_min: Optional[float] = 0.01,
@@ -44,13 +46,15 @@ class DeepQLearnerAgent:
         :param epsilon_min: The minimum epsilon of epsilon-greedy.
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
-        self.learning_rate = learning_rate
+        self.memory  = deque(maxlen=2000)
+
         self.gamma = gamma
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.epsilon_max = epsilon_max
         self.epsilon = epsilon_max
-        self.model = create_nnet()
+        self.learning_rate = learning_rate
+        self.model = create_nnet(env.row * env.col, dim_msg, self.learning_rate)
 
     def greedy_action(self, observation) -> int:
         """
@@ -79,9 +83,6 @@ class DeepQLearnerAgent:
             else:
                 return self.greedy_action(observation)
 
-    def custom_loss(self):
-        return backend.square(2)
-
     def learn(self, obs: int, act: int, rew: float, done: bool, next_obs: int) -> None:
         """
         Update the Q-Value.
@@ -91,28 +92,27 @@ class DeepQLearnerAgent:
         :param done: Done flag.
         :param next_obs: The next observation.
         """
-
-        H = self.model.fit(trainX, trainY, validation_data=(testX, testY), epochs=100, batch_size=128)
-
+        self.remember(obs, act, rew, done, next_obs)
+        self.replay()
         # Epsilon decay
         if(done):
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
 
+    def remember(self, obs: int, act: int, rew: float, done: bool, next_obs: int):
+        self.memory.append([state, action, reward, new_state, done])
 
-            
-            
-class CustomAccuracy(tf.keras.losses.Loss):
-        
-    def __init__(self):
-
-        super().__init__()
-
-    def call(self, y_true, y_pred):
-
-        mse= tf.reduce_mean(tf.square(y_pred-y_true))
-
-        rmse= tf.math.sqrt(mse)
-
-        return rmse / tf.reduce_mean(tf.square(y_true)) - 1
-
-    model.compile(optimizer=Adam(learning_rate=0.001), loss=CustomAccuracy(), metrics=['mae', 'mse'])
+    def replay(self):
+        batch_size = 10
+        if len(self.memory) < batch_size: 
+            return
+        samples = random.sample(self.memory, batch_size)
+        for sample in samples:
+            state, action, reward, new_state, done = sample
+            target = self.model.predict(state)
+            if done:
+                target[0][action] = reward
+            else:
+                Q_future = max(
+                    self.model.predict(new_state)[0])
+                target[0][action] = reward + Q_future * self.gamma
+            self.model.fit(state, target, epochs=1, verbose=0)
