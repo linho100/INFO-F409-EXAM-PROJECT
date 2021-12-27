@@ -1,6 +1,6 @@
 from typing import Iterable
 import random
-import numpy as np
+from numpy import zeros
 import operator
 
 
@@ -61,7 +61,7 @@ class GridWorld:
         2 -> agent
         3 -> goal
         """
-        self.grid = np.zeros((self.row, self.col))
+        self.grid = zeros((self.row, self.col))
         self.agent_pos = (self.row//2, self.col//2)
         self.grid[self.agent_pos] = 2
         self.forbid = [((self.row//2, self.col//2))]

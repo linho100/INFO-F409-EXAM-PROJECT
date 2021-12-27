@@ -32,7 +32,7 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool) -> flo
 
     return cum_reward/t
 
-def train(env: GridWorld, num_episodes: int) -> Tuple[list, DeepQLearnerAgent]:
+def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQLearnerAgent]:
     """
     Training loop.
     :param env: The environment.
@@ -40,7 +40,7 @@ def train(env: GridWorld, num_episodes: int) -> Tuple[list, DeepQLearnerAgent]:
     :return: ...
     """
     print("train")
-    agent = DeepQLearnerAgent(env, 2)
+    agent = DeepQLearnerAgent(env, 2, gamma)
     avg_rewards_list = [] 
     for i in tqdm(range(num_episodes)):
         if i % 100 == 0:
@@ -53,8 +53,9 @@ def train(env: GridWorld, num_episodes: int) -> Tuple[list, DeepQLearnerAgent]:
 if __name__ == '__main__':
     print("start")
     num_episodes = 1000
-    env = GridWorld()
-    rewards, agent = train(env, num_episodes)
+    gamma = 0.7
+    env = GridWorld(p_term=1-gamma)
+    rewards, agent = train(env, num_episodes, gamma)
       
     plt.plot(arange(num_episodes), rewards)
 
