@@ -26,7 +26,7 @@ def create_nnet(n_cells: int, msg_dim: int) -> tf.keras.model.Sequential:
 
     return model
 
-class QLearnerAgent:
+class DeepQLearnerAgent:
     """
     The agent class
     """
@@ -52,13 +52,14 @@ class QLearnerAgent:
         self.epsilon = epsilon_max
         self.model = create_nnet()
 
-    def greedy_action(self, observation: int) -> int:
+    def greedy_action(self, observation) -> int:
         """
         Return the greedy action.
         :param observation: The observation.
         :return: The action.
         """
-        return np.argmax(self.q_table[observation,:])
+        outputs = self.model.predict(observation)
+        return np.argmax(outputs)
 
     def act(self, observation: int, training: bool = True) -> int:
         """
