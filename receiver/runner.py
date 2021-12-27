@@ -29,10 +29,16 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool) -> flo
         if training:
             agent.learn(obs, action, reward, done, obs_prime)
         obs = obs_prime
-        if reward == 1: print("WIN")
+
+        if reward == 1:
+            print("WIN")
+            env.print_grid()
+            
+        if not done:
+            env.print_grid()
+
         cum_reward += reward
         t += 1
-        env.print_grid()
 
     print("DONE")
 
@@ -58,7 +64,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
 
 if __name__ == '__main__':
     num_episodes = 15
-    gamma = 0.7
+    gamma = 0.8
     env = GridWorld(p_term=1-gamma)
     rewards, agent = train(env, num_episodes, gamma)
       

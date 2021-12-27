@@ -23,33 +23,40 @@ class GridWorld:
         3 -> W
         """
         p = random.random()
+        
+        reward = 0
+        done = False
+
         if p < self.p_term:
-            return self.one_hot_encoding(), 0, True
+            done = True
         else:
+            # Compute next_pos based on move
             next_pos = tuple(map(operator.add, self.agent_pos, self.move(action)))
-            try:
-                if(self.grid[next_pos] == 0):
-                    self.update(next_pos)
-                elif(self.grid[next_pos] == 3):
-                    self.update(next_pos)
-                    encode = self.one_hot_encoding()
-                    return encode, 1, True
-            except IndexError:
-                pass
+            # Bound next_pos
+            next_pos = (max(min(4, next_pos[0]), 0), max(min(4, next_pos[1]), 0))
+            
+            if(self.grid[next_pos] == 0):
+                self.update(next_pos)
+            elif(self.grid[next_pos] == 3):
+                reward = 1
+                done = True
+                self.update(next_pos)
 
-            encode = self.one_hot_encoding()
-
-            return encode, 0, False
+        return self.one_hot_encoding(), reward, done
             
 
     def move(self, action):
         if(action == 0):
+            print("Action N")
             return (-1,0)
         elif(action == 1):
+            print("Action E")
             return (0,1)
         elif(action == 2):
+            print("Action S")
             return (1,0)
         else:
+            print("Action W")
             return (0,-1)
 
     def update(self, next_pos):
