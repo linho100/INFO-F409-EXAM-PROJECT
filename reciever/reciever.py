@@ -1,16 +1,13 @@
 from typing import Optional
-import numpy as np
-from numpy import ndarray
-import random
+from numpy import argmax
+from random import uniform, sample as rsample, randint
+from collections import deque
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import backend
-import tensorflow as tf
+from tensorflow.keras.optimizers import RMSprop
 
-
-def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> tf.keras.model.Sequential:
+def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> Sequential:
     """
     Function that returns an nnet
     :param n_cells: ....
@@ -35,7 +32,7 @@ class DeepQLearnerAgent:
                  env,
                  dim_msg,
                  learning_rate: float = 0.1,
-                 gamma: float,
+                 gamma: float = 0.99,
                  epsilon_max: Optional[float] = 1,
                  epsilon_min: Optional[float] = 0.01,
                  epsilon_decay: Optional[float] = 0.9):
@@ -62,8 +59,8 @@ class DeepQLearnerAgent:
         :param observation: The observation.
         :return: The action.
         """
-        outputs = self.model.predict(observation)
-        return np.argmax(outputs)
+        
+        return argmax(self.model.predict(observation))
 
     def act(self, observation: int, training: bool = True) -> int:
         """
@@ -77,9 +74,9 @@ class DeepQLearnerAgent:
             return self.greedy_action(observation)
         else:
             # Exploration-Exploitation trade-off
-            epsilon_rate = random.uniform(0,1)
+            epsilon_rate = uniform(0,1)
             if epsilon_rate < self.epsilon:
-                return random.randint(0,3)
+                return randint(0,3)
             else:
                 return self.greedy_action(observation)
 
@@ -99,15 +96,15 @@ class DeepQLearnerAgent:
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
 
     def remember(self, obs: int, act: int, rew: float, done: bool, next_obs: int):
-        self.memory.append([state, action, reward, new_state, done])
+        self.memory.append([obs, act, rew, done, next_obs])
 
     def replay(self):
         batch_size = 10
         if len(self.memory) < batch_size: 
             return
-        samples = random.sample(self.memory, batch_size)
+        samples = rsample(self.memory, batch_size)
         for sample in samples:
-            state, action, reward, new_state, done = sample
+            state, action, reward, done, new_state = sample
             target = self.model.predict(state)
             if done:
                 target[0][action] = reward

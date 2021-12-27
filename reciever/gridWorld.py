@@ -26,12 +26,12 @@ class GridWorld:
         if p < self.p_term:
             return self.grid, 0, True
         else:
-            next_pos = tuple(map(operator.add, self.agent_pos, move(action)))
+            next_pos = tuple(map(operator.add, self.agent_pos, self.move(action)))
             try:
                 if(self.grid[next_pos] == 0):
-                    update(next_pos)
+                    self.update(next_pos)
                 elif(self.grid[next_pos] == 3):
-                    update(next_pos)
+                    self.update(next_pos)
                     return self.grid, 1, True
             except IndexError:
                 pass
@@ -53,7 +53,7 @@ class GridWorld:
         self.grid[next_pos] = 2
         self.agent_pos = next_pos
 
-    def reset():
+    def reset(self):
         """
         In GridWorld:
         0 -> empty tile
