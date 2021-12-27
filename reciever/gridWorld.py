@@ -24,8 +24,7 @@ class GridWorld:
         """
         p = random.random()
         if p < self.p_term:
-            encode = self.one_hot_encoding()
-            return encode, 0, True
+            return self.one_hot_encoding(), 0, True
         else:
             next_pos = tuple(map(operator.add, self.agent_pos, self.move(action)))
             try:
@@ -45,13 +44,13 @@ class GridWorld:
 
     def move(self, action):
         if(action == 0):
-            return (0,1)
-        elif(action == 1):
-            return (1,0)
-        elif(action == 2):
-            return (0,-1)
-        else:
             return (-1,0)
+        elif(action == 1):
+            return (0,1)
+        elif(action == 2):
+            return (1,0)
+        else:
+            return (0,-1)
 
     def update(self, next_pos):
         self.grid[self.agent_pos] = 0
@@ -77,7 +76,7 @@ class GridWorld:
                 self.grid[self.goal] = 3
                 break
         """
-        self.goal = (4,4)
+        self.goal = (2,3)
         self.grid[self.goal] = 3
 
         encode = self.one_hot_encoding()

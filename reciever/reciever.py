@@ -1,5 +1,5 @@
 from typing import Optional
-from numpy import argmax
+from numpy import argmax, ndarray
 from random import uniform, sample as rsample, randint
 from collections import deque
 
@@ -15,7 +15,12 @@ def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> Sequential:
     :return: nnet: ...
     """
 
-    model = Sequential(Dense(4, input_shape = (n_cells + msg_dim,1), activation='softmax'))
+    model = Sequential(
+        [
+            Dense(n_cells + msg_dim, activation='softmax', name='input'),
+            Dense(4, name="output")
+        ]    
+    )
 
     model.compile(loss='mse', optimizer=RMSprop(learning_rate), metrics=["accuracy"])
 
@@ -52,15 +57,15 @@ class DeepQLearnerAgent:
         self.learning_rate = learning_rate
         self.model = create_nnet(self.n_cells, self.dim_msg, self.learning_rate)
 
-    def greedy_action(self, observation) -> int:
+    def greedy_action(self, obs) -> int:
         """
         Return the greedy action.
         :param observation: The observation.
         :return: The action.
         """
-        return argmax(self.model.predict(observation))
+        return argmax(self.model.predict_step(obs))
 
-    def act(self, observation: int, training: bool = True) -> int:
+    def act(self, obs: ndarray, training: bool = True) -> int:
         """
         Return the action.
         :param observation: The observation.
@@ -68,15 +73,17 @@ class DeepQLearnerAgent:
         should act greedily.
         :return: The action.
         """
+        obs = obs.reshape(-1,27)
+
         if(not training):
-            return self.greedy_action(observation)
+            return self.greedy_action(obs)
         else:
             # Exploration-Exploitation trade-off
             epsilon_rate = uniform(0,1)
             if epsilon_rate < self.epsilon:
                 return randint(0,3)
             else:
-                return self.greedy_action(observation)
+                return self.greedy_action(obs)
 
     def learn(self, obs: int, act: int, rew: float, done: bool, next_obs: int) -> None:
         """
@@ -93,8 +100,8 @@ class DeepQLearnerAgent:
         if(done):
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
 
-    def remember(self, obs: int, act: int, rew: float, done: bool, next_obs: int):
-        self.memory.append([obs, act, rew, done, next_obs])
+    def remember(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray):
+        self.memory.append([obs.reshape(-1,27), act, rew, done, next_obs.reshape(-1,27)])
 
     def replay(self):
         batch_size = 10
@@ -103,7 +110,7 @@ class DeepQLearnerAgent:
         samples = rsample(self.memory, batch_size)
         for sample in samples:
             state, action, reward, done, new_state = sample
-            target = self.model.predict(state)
+            target = self.model.predict(state, batch_size = 10)
             if done:
                 target[0][action] = reward
             else:
