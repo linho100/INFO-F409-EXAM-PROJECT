@@ -5,49 +5,39 @@ import random
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend
+import tensorflow as tf
 
 
-def create_q_table(num_states: int, num_actions: int) -> ndarray:
+def create_nnet(n_cells: int, msg_dim: int) -> tf.keras.model.Sequential:
     """
-    Function that returns a q_table as an array of shape (num_states, num_actions) filled with zeros.
-    :param num_states: Number of states.
-    :param num_actions: Number of actions.
-    :return: q_table: Initial q_table.
+    Function that returns an nnet
+    :param n_cells: ....
+    :param msg_dim: ....
+    :return: nnet: ...
     """
-
-    q_table = np.zeros((num_states, num_actions))
-
 
     model = Sequential()
-    model.add(Dense(256, input_shape=(784,), activation="sigmoid"))
-    model.add(Dense(4, activation="softmax"))
+    model.add(Dense(input_shape=(n_cells + msg_dim,), activation="sigmoid"))
+    model.add(Dense(4, activation="softmax")) # Number of actions
 
-    sgd = SGD(0.01)
-    model.compile(loss="categorical_crossentropy", optimizer=sgd,
-        metrics=["accuracy"])
-    H = model.fit(trainX, trainY, validation_data=(testX, testY),
-        epochs=100, batch_size=128)
+    model.compile(loss=custom_loss(), optimizer=Adam(learning_rate=0.001), metrics=["accuracy"])
 
-
-    return q_table
+    return model
 
 class QLearnerAgent:
     """
-    The agent class for exercise 1.
+    The agent class
     """
 
     def __init__(self,
-                 num_states: int,
-                 num_actions: int,
                  learning_rate: float,
                  gamma: float,
                  epsilon_max: Optional[float] = 1,
                  epsilon_min: Optional[float] = 0.01,
                  epsilon_decay: Optional[float] = 0.9):
         """
-        :param num_states: Number of states.
-        :param num_actions: Number of actions.
         :param learning_rate: The learning rate.
         :param gamma: The discount factor.
         :param epsilon_max: The maximum epsilon of epsilon-greedy.
@@ -56,11 +46,11 @@ class QLearnerAgent:
         """
         self.learning_rate = learning_rate
         self.gamma = gamma
-        self.q_table = create_q_table(num_states, num_actions)
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.epsilon_max = epsilon_max
         self.epsilon = epsilon_max
+        self.model = create_nnet()
 
     def greedy_action(self, observation: int) -> int:
         """
@@ -88,6 +78,8 @@ class QLearnerAgent:
             else:
                 return self.greedy_action(observation)
 
+    def custom_loss(self):
+        return backend.square(2)
 
     def learn(self, obs: int, act: int, rew: float, done: bool, next_obs: int) -> None:
         """
@@ -98,7 +90,28 @@ class QLearnerAgent:
         :param done: Done flag.
         :param next_obs: The next observation.
         """
-        self.q_table[obs, act] = self.q_table[obs, act] + self.learning_rate*(rew + self.gamma*np.max(self.q_table[next_obs,:]) - self.q_table[obs, act])
+
+        H = self.model.fit(trainX, trainY, validation_data=(testX, testY), epochs=100, batch_size=128)
+
         # Epsilon decay
         if(done):
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
+
+
+            
+            
+class CustomAccuracy(tf.keras.losses.Loss):
+        
+    def __init__(self):
+
+        super().__init__()
+
+    def call(self, y_true, y_pred):
+
+        mse= tf.reduce_mean(tf.square(y_pred-y_true))
+
+        rmse= tf.math.sqrt(mse)
+
+        return rmse / tf.reduce_mean(tf.square(y_true)) - 1
+
+    model.compile(optimizer=Adam(learning_rate=0.001), loss=CustomAccuracy(), metrics=['mae', 'mse'])
