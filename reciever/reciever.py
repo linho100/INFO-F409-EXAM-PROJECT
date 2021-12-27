@@ -15,9 +15,7 @@ def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> Sequential:
     :return: nnet: ...
     """
 
-    model = Sequential()
-    model.add(Dense(input_shape=(n_cells + msg_dim,), activation="sigmoid"))
-    model.add(Dense(4, activation="softmax")) # Number of actions
+    model = Sequential(Dense(4, input_shape = (n_cells + msg_dim,1), activation='softmax'))
 
     model.compile(loss='mse', optimizer=RMSprop(learning_rate), metrics=["accuracy"])
 
@@ -44,14 +42,15 @@ class DeepQLearnerAgent:
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
         self.memory  = deque(maxlen=2000)
-
+        self.n_cells = env.row * env.col
+        self.dim_msg = dim_msg
         self.gamma = gamma
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.epsilon_max = epsilon_max
         self.epsilon = epsilon_max
         self.learning_rate = learning_rate
-        self.model = create_nnet(env.row * env.col, dim_msg, self.learning_rate)
+        self.model = create_nnet(self.n_cells, self.dim_msg, self.learning_rate)
 
     def greedy_action(self, observation) -> int:
         """
@@ -59,7 +58,6 @@ class DeepQLearnerAgent:
         :param observation: The observation.
         :return: The action.
         """
-        
         return argmax(self.model.predict(observation))
 
     def act(self, observation: int, training: bool = True) -> int:

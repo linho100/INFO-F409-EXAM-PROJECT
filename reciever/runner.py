@@ -1,5 +1,5 @@
 from typing import Tuple
-from numpy import arange
+from numpy import arange, zeros, concatenate
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -17,13 +17,14 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool) -> flo
     """
     done = False
     obs = env.reset()
-    obs += [0, 0] #TODO: implement message
+    obs = concatenate((obs, [0,0])) #TODO: implement msg from sender
     cum_reward = 0.
     t = 0
     while not done:
         action = agent.act(obs, training)
         obs_prime, reward, done = env.step(action)
-        obs_prime += [0, 0] #TODO implement message
+        print(obs_prime)
+        obs_prime = concatenate((obs_prime, [0,0])) #TODO: implement msg from sender
         if training:
             agent.learn(obs, action, reward, done, obs_prime)
         obs = obs_prime

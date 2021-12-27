@@ -24,7 +24,8 @@ class GridWorld:
         """
         p = random.random()
         if p < self.p_term:
-            return self.grid, 0, True
+            encode = self.one_hot_encoding()
+            return encode, 0, True
         else:
             next_pos = tuple(map(operator.add, self.agent_pos, self.move(action)))
             try:
@@ -32,10 +33,14 @@ class GridWorld:
                     self.update(next_pos)
                 elif(self.grid[next_pos] == 3):
                     self.update(next_pos)
-                    return self.grid, 1, True
+                    encode = self.one_hot_encoding()
+                    return encode, 1, True
             except IndexError:
                 pass
-            return self.grid, 0, False
+
+            encode = self.one_hot_encoding()
+
+            return encode, 0, False
             
 
     def move(self, action):
@@ -74,4 +79,16 @@ class GridWorld:
         """
         self.goal = (4,4)
         self.grid[self.goal] = 3
-        return self.grid
+
+        encode = self.one_hot_encoding()
+
+        return encode
+
+    def one_hot_encoding(self):
+        encoding = zeros(self.row * self.col)
+        for i in range(self.col):
+            for j in range(self.row):
+                if self.grid[i,j] == 2:
+                    encoding[i*self.row + j] = 1
+                    
+        return encoding
