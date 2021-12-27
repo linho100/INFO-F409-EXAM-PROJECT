@@ -17,12 +17,12 @@ def create_nnet(n_cells: int, msg_dim: int, learning_rate: float) -> Sequential:
 
     model = Sequential(
         [
-            Dense(n_cells + msg_dim, activation='softmax', name='input'),
-            Dense(4, name="output")
+            Dense(n_cells + msg_dim, name='input'),
+            Dense(4, activation='softmax', name="output")
         ]    
     )
 
-    model.compile(loss='mse', optimizer=RMSprop(learning_rate), metrics=["accuracy"])
+    model.compile(loss='mse', optimizer=RMSprop(learning_rate), metrics=["accuracy", "mse"])
 
     return model
 
@@ -95,10 +95,12 @@ class DeepQLearnerAgent:
         :param next_obs: The next observation.
         """
         self.remember(obs, act, rew, done, next_obs)
-        self.replay()
+        history = self.replay()
         # Epsilon decay
         if(done):
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
+
+        return history
 
     def remember(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray):
         self.memory.append([obs.reshape(-1,27), act, rew, done, next_obs.reshape(-1,27)])
@@ -110,11 +112,10 @@ class DeepQLearnerAgent:
         samples = rsample(self.memory, batch_size)
         for sample in samples:
             state, action, reward, done, new_state = sample
-            target = self.model.predict(state, batch_size = 10)
+            target = self.model.predict(state)
             if done:
                 target[0][action] = reward
             else:
-                Q_future = max(
-                    self.model.predict(new_state)[0])
+                Q_future = max(self.model.predict(new_state)[0])
                 target[0][action] = reward + Q_future * self.gamma
-            self.model.fit(state, target, epochs=1, verbose=0)
+            return self.model.fit(state, target, epochs=1, verbose=0)

@@ -47,16 +47,12 @@ class GridWorld:
 
     def move(self, action):
         if(action == 0):
-            print("Action N")
             return (-1,0)
         elif(action == 1):
-            print("Action E")
             return (0,1)
         elif(action == 2):
-            print("Action S")
             return (1,0)
         else:
-            print("Action W")
             return (0,-1)
 
     def update(self, next_pos):
@@ -76,15 +72,12 @@ class GridWorld:
         self.agent_pos = (self.row//2, self.col//2)
         self.grid[self.agent_pos] = 2
         self.forbid = [((self.row//2, self.col//2))]
-        """
+        
         while True:
             self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
             if(self.goal not in self.forbid):
                 self.grid[self.goal] = 3
                 break
-        """
-        self.goal = (2,3)
-        self.grid[self.goal] = 3
 
         encode = self.one_hot_encoding()
 
