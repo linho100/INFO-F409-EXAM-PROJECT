@@ -21,6 +21,7 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool) -> flo
     obs = concatenate((obs, [0,0])) #TODO: implement msg from sender
     cum_reward = 0.
     t = 0
+    env.print_grid()
     while not done:
         action = agent.act(obs, training)
         obs_prime, reward, done = env.step(action)
@@ -31,7 +32,7 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool) -> flo
         if reward == 1: print("WIN")
         cum_reward += reward
         t += 1
-        print(env.grid)
+        env.print_grid()
 
     print("DONE")
 
@@ -50,8 +51,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
         if i % 100 == 0:
             print("Episode {} of {}".format(i + 1, num_episodes))
         avg_rewards_list.append(run_episode(env, agent, True))
-        print("--------------")
-        sleep(0.25)
+        sleep(0.05)
     
     return avg_rewards_list, agent
 

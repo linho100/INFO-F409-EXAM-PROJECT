@@ -91,3 +91,17 @@ class GridWorld:
                     encoding[i*self.row + j] = 1
                     
         return encoding
+
+    def print_grid(self):
+        print(" ------------")
+        for x in range(self.col):
+            line = " |"
+            for y in range(self.row):
+                if self.grid[x,y] == 0:
+                    line += "  "
+                elif self.grid[x,y] == 2:
+                    line += u"\u2588 "
+                elif self.grid[x,y] == 3:
+                    line += "X "
+            print(line + "|")
+        print(" ------------")
