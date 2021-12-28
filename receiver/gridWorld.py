@@ -73,11 +73,14 @@ class GridWorld:
         self.grid[self.agent_pos] = 2
         self.forbid = [((self.row//2, self.col//2))]
         
+        """
         while True:
-            self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
-            if(self.goal not in self.forbid):
-                self.grid[self.goal] = 3
-                break
+        self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
+        if(self.goal not in self.forbid):
+        self.grid[self.goal] = 3
+        break
+        """
+        self.grid[(3,3)] = 3
 
         encode = self.one_hot_encoding()
 

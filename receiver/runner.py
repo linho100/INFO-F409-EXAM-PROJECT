@@ -18,7 +18,7 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool, print_
     """
     done = False
     obs = env.reset()
-    obs = concatenate((obs, [0,0])) #TODO: implement msg from sender
+    # obs = concatenate((obs, [0,0])) #TODO: implement msg from sender
     cum_reward = 0.
     t = 0
 
@@ -27,7 +27,7 @@ def run_episode(env: GridWorld, agent: DeepQLearnerAgent, training: bool, print_
     while not done:
         action = agent.act(obs, training)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, [0,0])) #TODO: implement msg from sender
+        # obs_prime = concatenate((obs_prime, [0,0])) #TODO: implement msg from sender
         if training:
             history = agent.learn(obs, action, reward, done, obs_prime)
         obs = obs_prime
@@ -54,21 +54,23 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
     :param num_episodes: The number of episodes.
     :return: ...
     """
-    agent = DeepQLearnerAgent(env, 2, gamma)
-    avg_rewards_list = [] 
+    agent = DeepQLearnerAgent(env, 0, gamma)
+    avg_rewards_list = []
     for i in tqdm(range(num_episodes)):
-        if i % 100 == 0:
+        print(f"Epsilon: {agent.epsilon}")
+        if i % 50 == 0:
             print("Episode {} of {}".format(i + 1, num_episodes))
-            for j in range(5):
-                avg_rewards_list.append(run_episode(env, agent, True, True))
+            for j in range(15):
+                # evaluation
+                run_episode(env, agent, False, True)
                 i += j
         avg_rewards_list.append(run_episode(env, agent, True, False))
-    
+
     return avg_rewards_list, agent
 
 
 if __name__ == '__main__':
-    num_episodes = 150
+    num_episodes = 1000
     gamma = 0.9
     env = GridWorld(p_term=1-gamma)
     rewards, agent = train(env, num_episodes, gamma)
