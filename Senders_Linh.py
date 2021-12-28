@@ -2,12 +2,16 @@ import numpy as np
 import tensorflow as tf
 
 
-def loss_function(reward: int) -> float:
+def loss_function(reward: int, set_messages: list, message_sent: int) -> float:
     """
     Method that returns the loss for a sender agent.
+
     :param reward: The reward received.
+    :param set_messages: The possible messages.
+    :param message_sent: The message sent by the sender agent.
+    :return: The loss value of the sender.
     """
-    loss = (reward - ) ** 2
+    loss = (reward - set_messages[message_sent]) ** 2
 
     return loss
 
@@ -29,50 +33,50 @@ class SenderAgent:
         self.epsilon = epsilon
         self.messages_nb = messages_nb
         self.loss = 0
-        self.rewards = 0
         
         # Build the single layer FNN
         # inputs = tf.keras.Input(shape = (25,))
         # outputs = tf.keras.layers.Dense(self.messages_nb, activation=tf.nn.relu)(inputs)
         # self.fnn_model = tf.keras.Model(inputs=inputs, outputs=outputs)
         self.fnn_model = tf.keras.Sequential()
-        self.fnn_model.add(tf.keras.layers.Dense(self.messages_nb, input_dim=25, activation='softmax'))
+        self.fnn_model.add(tf.keras.layers.InputLayer(batch_input_shape=(25, 1)))
+        self.fnn_model.add(tf.keras.layers.Dense(self.messages_nb, activation='softmax'))
+        self.fnn_model.compile(optimizer='adam', loss=loss_function))
 
         pass
 
 
     def send_message(self) -> int:
         """
-        Method that returns a message from a given set of possible messages
-        output from a feed-forward neural network.
+        Method that returns a message from a given set of possible messages which
+        the action-values are output from a feed-forward neural network.
         
         :return: The message.
         """
-        # Implementation of action value estimation function
-        # as a single layer feed-forward neural network param by theta
-        input = self.goal_location.flatten()
-
-        # outputs = outputs of the FFN which is a list of messages_nb size
-        # containing all the messages that the sender can emit.
-        # set_messages = outputs
+        inputs = self.goal_location#.flatten()
+        #Outputs of the FNN containing all the q-values of the messages that the sender can emit.
+        outputs = self.fnn_model.predict(inputs)
+        self.set_messages = outputs
 
         if np.random.rand() < self.epsilon:
-            message = np.random.choice(set_messages)
+            message = np.random.randint(self.messages_nb)
         else:
-            message = 0
-            # message = best message in set_messages
-        
+            message = np.argmax(self.set_messages)
+        print(self.set_messages[0])
+        print("message sent: ", message)
         return message
 
 
-    def learn(self, reward: int) -> None:
+    def learn(self, reward: int, message_sent: int) -> None:
         """
-        Learning method to update the rewards of the sender agent.
+        Learning method to update the feed-forward neural network.
 
         :param reward: The reward received.
+        :param message_sent: The message sent during the current episode.
         """
-        self.rewards += reward
-        # Q = estimation function implemented as a single layer FNN
-        # self.loss = (reward - Q) ** 2
+        if reward == 1:
+            inputs = np.array(self.goal_location)#.flatten()
+            outputs = self.set_messages
+            self.fnn_model.fit(inputs, outputs, epochs=1, verbose=0)
         
 
