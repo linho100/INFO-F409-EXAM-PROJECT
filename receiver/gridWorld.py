@@ -1,7 +1,7 @@
 from typing import Iterable
-import random
+from random import random, randint
 from numpy import zeros
-import operator
+from operator import add
 
 class GridWorld:
     """
@@ -32,7 +32,7 @@ class GridWorld:
             2 -> S
             3 -> W
         """
-        p = random.random()
+        p = random()
         
         reward = 0
         done = False
@@ -41,7 +41,7 @@ class GridWorld:
             done = True
         else:
             # Compute next_pos based on move
-            next_pos = tuple(map(operator.add, self.agent_pos, self.move(action)))
+            next_pos = tuple(map(add, self.agent_pos, self.move(action)))
             # Bound next_pos
             next_pos = (max(min(4, next_pos[0]), 0), max(min(4, next_pos[1]), 0))
             
@@ -89,7 +89,7 @@ class GridWorld:
 
         # Add walls
         if layout == 5:
-            layout = random.randint(0,4)
+            layout = randint(0,4)
 
         layout_walls = self.layouts[layout]["walls"]
         for wall in layout_walls:
@@ -102,7 +102,7 @@ class GridWorld:
         self.grid[(3,3)] = 3
         """
         while True:
-            self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
+            self.goal = (randint(0,self.row-1), randint(0,self.col-1))
         if(self.goal not in self.forbid):
             self.grid[self.goal] = 3
         break

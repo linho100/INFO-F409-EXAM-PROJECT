@@ -2,7 +2,6 @@ from typing import Tuple
 from numpy import arange, concatenate
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 from receiver import DeepQLearnerAgent
 from gridWorld import GridWorld
@@ -54,10 +53,9 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
     :param num_episodes: The number of episodes.
     :return: ...
     """
-    agent = DeepQLearnerAgent(env, 0, gamma)
+    agent = DeepQLearnerAgent()
     avg_rewards_list = []
     for i in tqdm(range(num_episodes)):
-        print(f"Epsilon: {agent.epsilon}")
         if i % 50 == 0:
             print("Episode {} of {}".format(i + 1, num_episodes))
             for j in range(15):
