@@ -5,6 +5,7 @@ from senders_Linh import SenderAgent
 
 def run_process(channel_capacity: int, senders_nb: int, context_vector: list, epsilon: float):
     messages_nb = (channel_capacity) ** (1/senders_nb)
+    print(messages_nb)
     senders_list = list()
 
     for i in range(senders_nb):
