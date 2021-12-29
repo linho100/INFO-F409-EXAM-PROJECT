@@ -146,17 +146,11 @@ class DeepQLearnerAgent:
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(array(X), array(y), batch_size=self.batch_size, verbose=0, shuffle=False)
 
-    # def replay_simple(self):
-    #     batch_size = 10
-    #     if len(self.memory) < batch_size: 
-    #         return
-    #     samples = rsample(self.memory, batch_size)
-    #     for sample in samples:
-    #         state, action, reward, done, new_state = sample
-    #         target = self.model.predict(state)
-    #         if done:
-    #             target[0][action] = reward
-    #         else:
-    #             Q_future = max(self.model.predict(new_state)[0])
-    #             target[0][action] = reward + Q_future * self.gamma
-    #         return self.model.fit(state, target, epochs=1, verbose=0)
+
+    # def learn_agent(self, sample):
+
+    #     goal_location, message, reward = sample
+    #     target = self.model.predict(goal_location)
+    #     target[message] = reward
+
+    #     return self.model.fit(goal_location, target, epochs=1, verbose=0)

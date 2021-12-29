@@ -10,7 +10,7 @@ class GridWorld:
 
     def __init__(self, p_term):
         """
-            Create a 5 by 5 grid. (y,x) -> origin corresponds to the upper left corner
+            Create a 5 by 5 grid. (y,x) -> (0,0) corresponds to the upper left corner
         """
         self.p_term = p_term
         self.row = 5
