@@ -3,24 +3,34 @@ import random
 from numpy import zeros
 import operator
 
-
 class GridWorld:
     """
     Matrix Game environment.
     """
 
     def __init__(self, p_term):
+        """
+            Create a 5 by 5 grid. (y,x) -> origin corresponds to the upper left corner
+        """
         self.p_term = p_term
         self.row = 5
         self.col = 5
 
+        self.layouts = [
+                            {'name': 'empty', 'walls': []},
+                            {'name': 'flower', 'walls': [(0,2),(2,0),(4,2),(2,4)]},
+                            {'name': 'two_room', 'walls': [(0,2),(1,2),(3,2),(4,2)]},
+                            {'name': 'four_room', 'walls': [(0,2),(2,0),(4,2),(2,4),(2,1),(2,3)]},
+                            {'name': 'pong', 'walls': [(1,0),(2,0),(3,0),(0,2),(1,2),(3,2),(4,2),(1,4),(2,4),(3,4)]}
+                        ]
+
     def step(self, action: int):
         """
-        Action:
-        0 -> N
-        1 -> E
-        2 -> S
-        3 -> W
+        :param action: The action to perform
+            0 -> N
+            1 -> E
+            2 -> S
+            3 -> W
         """
         p = random.random()
         
@@ -60,31 +70,45 @@ class GridWorld:
         self.grid[next_pos] = 2
         self.agent_pos = next_pos
 
-    def reset(self):
+    def reset(self, layout: int = 0):
         """
+        :param layout: Layouts index from 0 to 4. 5 is random
+        :return: One hot encoding of map
         In GridWorld:
-        0 -> empty tile
-        1 -> wall
-        2 -> agent
-        3 -> goal
+            0 -> empty tile
+            1 -> wall
+            2 -> agent
+            3 -> goal
         """
+        # Create emtpy grid
         self.grid = zeros((self.row, self.col))
+
+        # Add agent
         self.agent_pos = (self.row//2, self.col//2)
         self.grid[self.agent_pos] = 2
-        self.forbid = [((self.row//2, self.col//2))]
+
+        # Add walls
+        if layout == 5:
+            layout = random.randint(0,4)
+
+        layout_walls = self.layouts[layout]["walls"]
+        for wall in layout_walls:
+            self.grid[wall[0], wall[1]] = 1
         
+        # Deal with forbidden positions --> REMOVE?
+        self.forbid = [((self.row//2, self.col//2))]
+
+        # Place goal
+        self.grid[(3,3)] = 3
         """
         while True:
-        self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
+            self.goal = (random.randint(0,self.row-1), random.randint(0,self.col-1))
         if(self.goal not in self.forbid):
-        self.grid[self.goal] = 3
+            self.grid[self.goal] = 3
         break
         """
-        self.grid[(3,3)] = 3
 
-        encode = self.one_hot_encoding()
-
-        return encode
+        return self.one_hot_encoding()
 
     def one_hot_encoding(self):
         encoding = zeros(self.row * self.col)
@@ -102,6 +126,8 @@ class GridWorld:
             for y in range(self.row):
                 if self.grid[x,y] == 0:
                     line += "  "
+                elif self.grid[x,y] == 1:
+                    line += u"\u25A1 "
                 elif self.grid[x,y] == 2:
                     line += u"\u2588 "
                 elif self.grid[x,y] == 3:
