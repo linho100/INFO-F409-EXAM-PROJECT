@@ -127,7 +127,7 @@ class GridWorld:
                 if self.grid[x,y] == 0:
                     line += "  "
                 elif self.grid[x,y] == 1:
-                    line += u"\u25A1 "
+                    line += u"\u2395 "
                 elif self.grid[x,y] == 2:
                     line += u"\u2588 "
                 elif self.grid[x,y] == 3:
