@@ -68,7 +68,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float) -> Tuple[list, DeepQL
 
 
 if __name__ == '__main__':
-    num_episodes = 1000
+    num_episodes = 8
     gamma = 0.9
     env = GridWorld(p_term=1-gamma)
     rewards, agent = train(env, num_episodes, gamma)

@@ -31,7 +31,7 @@ class DeepQLearnerAgent:
         :param epsilon_min: The minimum epsilon of epsilon-greedy.
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
-        self.n_states = n_states + dim_msg
+        # self.n_states = n_states + dim_msg
         self.n_actions = n_actions
 
         self.alpha = learning_rate
@@ -44,7 +44,7 @@ class DeepQLearnerAgent:
 
         self.batch_size = 15
         self.memory  = deque(maxlen=2000)
-        self.model = self.create_nnet()
+        # self.model = self.create_nnet()
     
     def create_nnet(self) -> Sequential:
         """
@@ -68,7 +68,7 @@ class DeepQLearnerAgent:
         :param obs: The observation.
         :return: The action.
         """
-        return argmax(self.model.predict_step(obs.reshape(-1,self.n_states)))
+        return argmax(self.model.predict_step(obs.reshape(-1, self.n_states)))
 
     def act(self, obs: ndarray, training: bool = True) -> int:
         """
@@ -95,13 +95,11 @@ class DeepQLearnerAgent:
         :param next_obs: The next observation.
         """
         self.remember(obs, act, rew, done, next_obs)
-        history = self.replay()
+        self.replay()
 
         # Epsilon decay
         if(done):
             self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
-
-        return history
 
     def remember(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray):
         self.memory.append([obs, act, rew, done, next_obs])
@@ -112,9 +110,12 @@ class DeepQLearnerAgent:
 
         # Get a minibatch of random samples from memory replay table
         minibatch = rsample(self.memory, self.batch_size)
-
         # Get current states from minibatch, then query NN model for Q values
         current_states = array([transition[0] for transition in minibatch])
+        # print("Transition: ")
+        # print('len: ', len(current_states))
+        # for transition in current_states:
+        #     print(transition)
         current_qs_list = self.model.predict(current_states)
 
         # Get future states from minibatch, then query NN model for Q values
@@ -146,6 +147,8 @@ class DeepQLearnerAgent:
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(array(X), array(y), batch_size=self.batch_size, verbose=0, shuffle=False)
 
+    def update_states(self, dim_msg):
+        self.n_states = 25 + dim_msg
 
     # def learn_agent(self, sample):
 
