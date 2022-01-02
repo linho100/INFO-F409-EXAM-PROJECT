@@ -128,8 +128,8 @@ class GridWorld:
 
         return context_vector
 
-    def print_grid(self):
-        print(" ------------")
+    def __str__(self):
+        text = " ------------\n"
         for x in range(self.col):
             line = " |"
             for y in range(self.row):
@@ -141,5 +141,6 @@ class GridWorld:
                     line += u"\u2588 "
                 elif self.grid[x,y] == 3:
                     line += "X "
-            print(line + "|")
-        print(" ------------")
+            text += line + "|\n"
+        text += " ------------"
+        return text

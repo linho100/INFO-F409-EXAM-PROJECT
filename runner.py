@@ -36,7 +36,7 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
     receiver.model = receiver.create_nnet()
 
     if print_progress is True:
-        env.print_grid()
+        print(env)
     # print("HERE: ", len(obs), len(messages_encoded), receiver.n_states)
     while not done:
         action = receiver.act(obs, training)
@@ -51,10 +51,10 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
         if print_progress is True:
             if reward == 1:
                 print("WIN")
-                env.print_grid()
+                print(env)
 
             if not done:
-                env.print_grid()
+                print(env)
 
         cum_reward += reward
         t += 1
