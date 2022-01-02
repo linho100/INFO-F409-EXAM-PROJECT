@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from sender.sender import SenderAgent
 from receiver.receiver import DeepQLearnerAgent
-from receiver.gridWorld_bis import GridWorld
+from receiver.gridWorld import GridWorld
 
 
 def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], training: bool, print_progress: bool) -> float:
