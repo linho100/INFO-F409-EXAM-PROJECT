@@ -77,7 +77,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float, channel_capacity: int
                 i += j
         avg_rewards_list.append(run_episode(env, receiver, senders_list, training=True, layout_type=layout_type))
 
-    return avg_rewards_list, receiver.model
+    return avg_rewards_list, receiver.model, [s.model for s in senders_list]
 
 def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity):
     for senders_nb in range(1,6):
