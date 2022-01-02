@@ -1,6 +1,6 @@
 from typing import Iterable
 from random import random, randint
-from numpy import zeros
+from numpy import ndarray, zeros
 from operator import add
 
 class GridWorld:
@@ -110,7 +110,7 @@ class GridWorld:
 
         return self.one_hot_enc_player()
 
-    def one_hot_enc_player(self):
+    def one_hot_enc_player(self) -> ndarray:
         encoding = zeros(self.row * self.col)
         for i in range(self.col):
             for j in range(self.row):
@@ -119,7 +119,7 @@ class GridWorld:
                     
         return encoding
 
-    def one_hot_enc_goal(self) -> list:
+    def one_hot_enc_goal(self) -> ndarray:
         context_vector = zeros(self.row * self.col)
         for i in range(self.col):
             for j in range(self.row):
