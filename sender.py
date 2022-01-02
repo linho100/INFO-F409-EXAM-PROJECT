@@ -43,9 +43,12 @@ class SenderAgent:
         self.message_sent = 0
         
         # Build the single layer FNN
-        self.model = Sequential()
-        self.model.add(Dense(24, input_shape=(25,), activation='relu'), name="input")
-        self.model.add(Dense(self.messages_nb, activation='softmax'), name="output")
+        self.model = Sequential(
+            [
+                Dense(24, input_shape=(25,), activation='relu', name="input"),
+                Dense(self.messages_nb, activation='softmax', name="output")
+            ]
+        )
 
         self.model.compile(optimizer='adam', loss='mse')
 
