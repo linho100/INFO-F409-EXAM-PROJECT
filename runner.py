@@ -1,12 +1,11 @@
 from typing import Iterable, Tuple
-import numpy as np
-from numpy import arange, concatenate
+from numpy import arange, concatenate, delete
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from sender.sender import SenderAgent
-from receiver.receiver import DeepQLearnerAgent
-from receiver.gridWorld import GridWorld
+from sender import SenderAgent
+from receiver import DeepQLearnerAgent
+from gridWorld import GridWorld
 
 
 def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], training: bool, print_progress: bool) -> float:
@@ -32,7 +31,7 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
         messages_encoded = concatenate((messages_encoded, message)) #store the messages sent
         obs = concatenate((obs, message)) #TODO: implement msg from the i-th sender
 
-    messages_encoded = np.delete(messages_encoded, 0)
+    messages_encoded = delete(messages_encoded, 0)
     receiver.update_states(len(messages_encoded))
     receiver.model = receiver.create_nnet()
 
