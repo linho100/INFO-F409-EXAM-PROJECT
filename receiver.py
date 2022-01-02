@@ -21,7 +21,7 @@ class DeepQLearnerAgent:
                  gamma: float = 0.95,
                  epsilon_max: Optional[float] = 1,
                  epsilon_min: Optional[float] = 0.01,
-                 epsilon_decay: Optional[float] = 0.996):
+                 epsilon_decay: Optional[float] = 0.995):
         """
         :param dim_msg: The dimension of the sender's message.
         :param n_states: The number of states.

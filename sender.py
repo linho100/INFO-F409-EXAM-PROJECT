@@ -19,7 +19,7 @@ def one_hot_encoding(message: int) -> Iterable[int]:
     if len(encoded_message) < max_bits_nb:
         for i in range(max_bits_nb - len(encoded_message)):
             encoded_message = insert(encoded_message, 0, 0)
-    print('encoded_message: ', encoded_message)
+    # print('encoded_message: ', encoded_message)
 
     return encoded_message
 
@@ -63,7 +63,7 @@ class SenderAgent:
         #Outputs of the FNN containing all the q-values of the messages that the sender can emit.
         outputs = self.model.predict(array(inputs))
         self.set_messages = outputs
-        print(self.set_messages)
+        # print(self.set_messages)
 
         if random.rand() < self.epsilon:
             message = random.randint(self.messages_nb)
@@ -84,7 +84,7 @@ class SenderAgent:
         :param reward: The reward received.
         """
         target = self.model.predict(array(self.goal_location.reshape(1, -1)))
-        print(target)
+        # print(target)
         target[0][self.message_sent] = reward
 
         # if reward == 1: #to check
