@@ -19,7 +19,7 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
     """
     done = False
     obs = env.reset()
-    context_vector = env.context_vector()
+    context_vector = env.one_hot_enc_goal()
     cum_reward = 0.
     t = 0
     messages_encoded = [-1]

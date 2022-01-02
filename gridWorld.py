@@ -52,7 +52,7 @@ class GridWorld:
                 done = True
                 self.update(next_pos)
 
-        return self.one_hot_encoding(), reward, done
+        return self.one_hot_enc_player(), reward, done
             
 
     def move(self, action):
@@ -108,9 +108,9 @@ class GridWorld:
         break
         """
 
-        return self.one_hot_encoding()
+        return self.one_hot_enc_player()
 
-    def one_hot_encoding(self):
+    def one_hot_enc_player(self):
         encoding = zeros(self.row * self.col)
         for i in range(self.col):
             for j in range(self.row):
@@ -119,7 +119,7 @@ class GridWorld:
                     
         return encoding
 
-    def context_vector(self) -> list:
+    def one_hot_enc_goal(self) -> list:
         context_vector = zeros(self.row * self.col)
         for i in range(self.col):
             for j in range(self.row):
