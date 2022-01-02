@@ -120,13 +120,13 @@ class GridWorld:
         return encoding
 
     def one_hot_enc_goal(self) -> ndarray:
-        context_vector = zeros(self.row * self.col)
+        encoding = zeros(self.row * self.col)
         for i in range(self.col):
             for j in range(self.row):
                 if self.grid[i,j] == 3:
-                    context_vector[i*self.row + j] = 1
+                    encoding[i*self.row + j] = 1
 
-        return context_vector
+        return encoding
 
     def __str__(self):
         text = " ------------\n"

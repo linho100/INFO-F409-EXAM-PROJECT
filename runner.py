@@ -32,8 +32,6 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
         obs = concatenate((obs, message)) #TODO: implement msg from the i-th sender
 
     messages_encoded = delete(messages_encoded, 0)
-    receiver.update_states(len(messages_encoded))
-    receiver.model = receiver.create_nnet()
 
     if print_progress is True:
         print(env)
@@ -74,7 +72,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float, channel_capacity: int
     :param num_episodes: The number of episodes.
     :return: ...
     """
-    receiver = DeepQLearnerAgent()
+    receiver = DeepQLearnerAgent(n_senders=senders_nb)
     messages_nb = (channel_capacity) ** (1/senders_nb)
     senders_list = list()
 

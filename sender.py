@@ -21,7 +21,7 @@ def loss_function(reward: int, set_messages: list, message_sent: int) -> float:
     return loss
 
 def one_hot_encoding(message: int) -> Iterable[int]:
-    max_bits_nb = 7
+    max_bits_nb = 5
     binary = str(format(message, 'b'))
     encoded_message = np.zeros(len(binary))
     

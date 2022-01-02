@@ -13,7 +13,8 @@ class DeepQLearnerAgent:
     """
 
     def __init__(self,
-                 dim_msg: int = 0,
+                 dim_msg: int = 5,
+                 n_senders: int = 1,
                  n_states: int = 25, 
                  n_actions: int = 4, 
                  learning_rate: float = 1e-3,
@@ -31,8 +32,8 @@ class DeepQLearnerAgent:
         :param epsilon_min: The minimum epsilon of epsilon-greedy.
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
-        # self.n_states = n_states + dim_msg
-        self.n_actions = n_actions
+        self.n_states = n_states + dim_msg * n_senders
+        self.n_actions = n_actions 
 
         self.alpha = learning_rate
         self.gamma = gamma
@@ -44,7 +45,7 @@ class DeepQLearnerAgent:
 
         self.batch_size = 15
         self.memory  = deque(maxlen=2000)
-        # self.model = self.create_nnet()
+        self.model = self.create_nnet()
     
     def create_nnet(self) -> Sequential:
         """
@@ -146,14 +147,3 @@ class DeepQLearnerAgent:
 
         # Fit on all samples as one batch, log only on terminal state
         self.model.fit(array(X), array(y), batch_size=self.batch_size, verbose=0, shuffle=False)
-
-    def update_states(self, dim_msg):
-        self.n_states = 25 + dim_msg
-
-    # def learn_agent(self, sample):
-
-    #     goal_location, message, reward = sample
-    #     target = self.model.predict(goal_location)
-    #     target[message] = reward
-
-    #     return self.model.fit(goal_location, target, epochs=1, verbose=0)
