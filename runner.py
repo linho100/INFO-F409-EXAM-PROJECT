@@ -1,6 +1,6 @@
 from typing import Iterable, Tuple
 from math import floor, exp, log
-from numpy import arange, concatenate, delete
+from numpy import concatenate, delete
 from tqdm import tqdm
 from csv import writer as csv_writer
 from os import mkdir
@@ -15,8 +15,9 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
     Interact with the environment for one episode using actions derived from the nnet.
     :param env: The environment.
     :param receiver: The receiver agent.
-    :param sender: The sender agent.
+    :param senders_list:
     :param training: If true the q_table will be updated using q-learning. The flag is also passed to the action selector.
+    :param layout_type:
     :return: The average cumulated reward.
     """
     done = False
@@ -29,15 +30,15 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
     for i in range(senders_nb):
         senders_list[i].goal_location = context_vector
         message = senders_list[i].send_message()
-        messages_encoded = concatenate((messages_encoded, message)) #store the messages sent
-        obs = concatenate((obs, message)) #TODO: implement msg from the i-th sender
+        messages_encoded = concatenate((messages_encoded, message)) # Store the messages sent
+        obs = concatenate((obs, message)) # TODO: implement msg from the i-th sender
 
     messages_encoded = delete(messages_encoded, 0)
 
     while not done:
         action = receiver.act(obs, training)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded)) #TODO: implement msg from senders
+        obs_prime = concatenate((obs_prime, messages_encoded)) # TODO: implement msg from senders
 
         # Receiver learning
         if training:
@@ -51,17 +52,23 @@ def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Itera
         for i in range(senders_nb):
             senders_list[i].learn(reward)
 
-    return reward/step
+    return reward / step
 
 def train(env: GridWorld, num_episodes: int, gamma: float, channel_capacity: int, senders_nb: int, epsilon_s: float, epsilon_r: float, layout_type: int) -> Tuple[list, DeepQLearnerAgent]:
     """
     Training loop.
     :param env: The environment.
     :param num_episodes: The number of episodes.
+    :param gamma:
+    :param channel_capacity:
+    :param senders_nb:
+    :param epsilon_s:
+    :param epsilon_r:
+    :param layout_type:
     :return: ...
     """
-    receiver = DeepQLearnerAgent(n_senders=senders_nb, epsilon_decay = 1-epsilon_r, gamma=gamma)
-    messages_nb = floor(exp(log(channel_capacity)/senders_nb))
+    receiver = DeepQLearnerAgent(n_senders=senders_nb, epsilon_decay = 1 - epsilon_r, gamma=gamma)
+    messages_nb = floor(exp(log(channel_capacity) / senders_nb))
     senders_list = list()
 
     for i in range(senders_nb):
@@ -97,21 +104,25 @@ def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel
 
 def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
     # Save data to csv
-    with open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'a') as file:
-        writer = csv_writer(file)
-        writer.writerows(map(lambda x: [x], data))
+    try:
+        file = open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'a')
+    except FileNotFoundError:
+        open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'w')
+
+    writer = csv_writer(file)
+    writer.writerows(map(lambda x: [x], data))
     
     # Save models
     folder_name = f"experiment_{experiment_number.to_s}_layout_{layout}"
     try:
         mkdir(f"./experiments/{folder_name}")
-    except:
+    except FileExistsError:
         pass
 
     try:
         mkdir(f"./experiments/{folder_name}/senders")
         mkdir(f"./experiments/{folder_name}/receivers")
-    except:
+    except FileExistsError:
         pass
 
     receiver_model.save(f"./models/{folder_name}/receiver/r_{subtitle}")

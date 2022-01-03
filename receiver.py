@@ -7,6 +7,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import RMSprop
 
+
 class DeepQLearnerAgent:
     """
     The agent class
@@ -15,8 +16,8 @@ class DeepQLearnerAgent:
     def __init__(self,
                  dim_msg: int = 5,
                  n_senders: int = 1,
-                 n_states: int = 25, 
-                 n_actions: int = 4, 
+                 n_states: int = 25,
+                 n_actions: int = 4,
                  learning_rate: float = 1e-3,
                  gamma: float = 0.95,
                  epsilon_max: Optional[float] = 1,
@@ -33,7 +34,7 @@ class DeepQLearnerAgent:
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
         self.n_states = n_states + dim_msg * n_senders
-        self.n_actions = n_actions 
+        self.n_actions = n_actions
 
         self.alpha = learning_rate
         self.gamma = gamma
@@ -44,9 +45,9 @@ class DeepQLearnerAgent:
         self.epsilon = epsilon_max
 
         self.batch_size = 15
-        self.memory  = deque(maxlen=2000)
+        self.memory = deque(maxlen=2000)
         self.model = self.create_nnet()
-    
+
     def create_nnet(self) -> Sequential:
         """
         Function that returns an nnet
@@ -57,8 +58,7 @@ class DeepQLearnerAgent:
                 Dense(24, input_dim=self.n_states, activation='relu', name="input"),
                 Dense(24, activation='relu', name="hidden"),
                 Dense(self.n_actions, activation='linear', name="output")
-            ]    
-        )
+            ])
         model.compile(loss='mse', optimizer=RMSprop(self.alpha), metrics=["accuracy", "mse"])
 
         return model
@@ -79,12 +79,12 @@ class DeepQLearnerAgent:
         should act greedily.
         :return: The action.
         """
-        epsilon_rate = uniform(0,1)
+        epsilon_rate = uniform(0, 1)
         # Exploration-Exploitation trade-off
         if (not training) or epsilon_rate > self.epsilon:
             return self.greedy_action(obs)
         else:
-            return randint(0,3)  
+            return randint(0, 3)  
     
     def learn(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray) -> None:
         """
@@ -99,14 +99,14 @@ class DeepQLearnerAgent:
         self.replay()
 
         # Epsilon decay
-        if(done):
-            self.epsilon = max(self.epsilon*self.epsilon_decay, self.epsilon_min)
+        if (done):
+            self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
 
     def remember(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray):
         self.memory.append([obs, act, rew, done, next_obs])
 
     def replay(self):
-        if len(self.memory) < self.batch_size: 
+        if len(self.memory) < self.batch_size:
             return
 
         # Get a minibatch of random samples from memory replay table
