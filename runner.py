@@ -77,7 +77,7 @@ def train(env: GridWorld, num_episodes: int, gamma: float, channel_capacity: int
                 i += j
         avg_rewards_list.append(run_episode(env, receiver, senders_list, training=True, layout_type=layout_type))
 
-    return avg_rewards_list, receiver.model
+    return avg_rewards_list, receiver.model, [s.model for s in senders_list]
 
 def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity):
     for senders_nb in range(1,6):
@@ -85,7 +85,7 @@ def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel
         rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
 
         # Save results to csv file
-        save_results("./experiment_1.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
+        save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
 
 def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders_nb):
     for channel_capacity in [3,4,5,8,9,16,25,27,32]:
@@ -93,7 +93,7 @@ def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders
         rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
 
         # Save results to csv file
-        save_results("./experiment_2.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"c_{channel_capacity}")
+        save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=2, subtitle=f"c_{channel_capacity}")
 
 def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
     # Save data to csv
@@ -120,8 +120,8 @@ if __name__ == '__main__':
     epsilon_s = 0.005
     epsilon_r = 0.005
 
-    layout_type = 0 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
+    layout_type = 3 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
 
     experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
-    experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32,36,64], senders_nb=3)
+    # experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32,36,64], senders_nb=3)
     
