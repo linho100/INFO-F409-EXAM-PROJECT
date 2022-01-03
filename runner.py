@@ -144,7 +144,7 @@ def save_results(data, receiver_model, senders_models, layout, experiment_number
         counter += 1
 
 if __name__ == '__main__':
-    num_episodes = 1#int(1e4)
+    num_episodes = int(1e4)
     gamma = 0.8
     epsilon_s = 0.005
     epsilon_r = 0.005
@@ -152,5 +152,5 @@ if __name__ == '__main__':
     layout_type = 0 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
 
     experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
-    # experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32], senders_nb=3)
+    experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32], senders_nb=3)
     
