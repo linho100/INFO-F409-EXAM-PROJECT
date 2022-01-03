@@ -85,7 +85,7 @@ def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel
         rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
 
         # Save results to csv file
-        save_results("./experiment_1.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
+        save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
 
 def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders_nb):
     for channel_capacity in [3,4,5,8,9,16,25,27,32]:
@@ -93,7 +93,7 @@ def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders
         rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
 
         # Save results to csv file
-        save_results("./experiment_2.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"c_{channel_capacity}")
+        save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=2, subtitle=f"c_{channel_capacity}")
 
 def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
     # Save data to csv
