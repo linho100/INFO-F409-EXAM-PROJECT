@@ -94,8 +94,8 @@ def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel
         # Save results to csv file
         save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
 
-def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacitites, senders_nb):
-    for channel_capacity in channel_capacitites:
+def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities, senders_nb):
+    for channel_capacity in channel_capacities:
         env = GridWorld(p_term=1-gamma)
         rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
 
@@ -133,13 +133,13 @@ def save_results(data, receiver_model, senders_models, layout, experiment_number
         counter += 1
 
 if __name__ == '__main__':
-    num_episodes = int(1e4)
+    num_episodes = 5#int(1e4)
     gamma = 0.8
     epsilon_s = 0.005
     epsilon_r = 0.005
 
     layout_type = 0 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
 
-    experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
+    # experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
     experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32], senders_nb=3)
     
