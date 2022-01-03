@@ -103,43 +103,54 @@ def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel
         save_results(rewards, receiver_model, senders_models, layout=layout_type, experiment_number=2, subtitle=f"c_{channel_capacity}")
 
 def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
+    # Create directories
+    try:
+        mkdir(f"./experiments/")
+    except FileExistsError:
+        pass
+
+    folder_name = f"experiment_{experiment_number}_layout_{layout}"
+    try:
+        mkdir(f"./experiments/{folder_name}/")
+    except FileExistsError:
+        pass
+
+    try:
+        mkdir(f"./experiments/{folder_name}/models/")
+    except:
+        pass
+
+    try:
+        mkdir(f"./experiments/{folder_name}/models/senders")
+        mkdir(f"./experiments/{folder_name}/models/receivers")
+    except FileExistsError:
+        pass
+
     # Save data to csv
     try:
-        file = open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'a')
+        file = open(f"./experiments/{folder_name}/experiment_{experiment_number}_{subtitle}.csv", 'a')
     except FileNotFoundError:
-        open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'w')
+        file = open(f"./experiments/{folder_name}/experiment_{experiment_number}_{subtitle}.csv", 'w')
 
     writer = csv_writer(file)
     writer.writerows(map(lambda x: [x], data))
     
     # Save models
-    folder_name = f"experiment_{experiment_number.to_s}_layout_{layout}"
-    try:
-        mkdir(f"./experiments/{folder_name}")
-    except FileExistsError:
-        pass
-
-    try:
-        mkdir(f"./experiments/{folder_name}/senders")
-        mkdir(f"./experiments/{folder_name}/receivers")
-    except FileExistsError:
-        pass
-
-    receiver_model.save(f"./models/{folder_name}/receiver/r_{subtitle}")
+    receiver_model.save(f"./experiments/{folder_name}/models/receivers/r_{subtitle}")
     
     counter = 0
     for sender_model in senders_models:
-        sender_model.save(f"./models/{folder_name}/senders/s_{subtitle}_{counter}")
+        sender_model.save(f"./experiments/{folder_name}/models/senders/s_{subtitle}_{counter}")
         counter += 1
 
 if __name__ == '__main__':
-    num_episodes = 5#int(1e4)
+    num_episodes = 1#int(1e4)
     gamma = 0.8
     epsilon_s = 0.005
     epsilon_r = 0.005
 
     layout_type = 0 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
 
-    # experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
-    experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32], senders_nb=3)
+    experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
+    # experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32], senders_nb=3)
     
