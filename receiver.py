@@ -6,7 +6,7 @@ from collections import deque
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import RMSprop
-
+from tensorflow.keras.models import load_model
 
 class DeepQLearnerAgent:
     """
@@ -22,7 +22,8 @@ class DeepQLearnerAgent:
                  gamma: float = 0.95,
                  epsilon_max: Optional[float] = 1,
                  epsilon_min: Optional[float] = 0.01,
-                 epsilon_decay: Optional[float] = 0.995):
+                 epsilon_decay: Optional[float] = 0.995,
+                 model_path = None):
         """
         :param dim_msg: The dimension of the sender's message.
         :param n_states: The number of states.
@@ -33,20 +34,26 @@ class DeepQLearnerAgent:
         :param epsilon_min: The minimum epsilon of epsilon-greedy.
         :param epsilon_decay: The decay factor of epsilon-greedy.
         """
-        self.n_states = n_states + dim_msg * n_senders
-        self.n_actions = n_actions
+        if model_path is None:
+            self.n_states = n_states + dim_msg * n_senders
+            self.n_actions = n_actions
 
-        self.alpha = learning_rate
-        self.gamma = gamma
+            self.alpha = learning_rate
+            self.gamma = gamma
 
-        self.epsilon_decay = epsilon_decay
-        self.epsilon_min = epsilon_min
-        self.epsilon_max = epsilon_max
-        self.epsilon = epsilon_max
+            self.epsilon_decay = epsilon_decay
+            self.epsilon_min = epsilon_min
+            self.epsilon_max = epsilon_max
+            self.epsilon = epsilon_max
 
-        self.batch_size = 15
-        self.memory = deque(maxlen=2000)
-        self.model = self.create_nnet()
+            self.batch_size = 15
+            self.memory = deque(maxlen=2000)
+            self.model = self.create_nnet()
+        else:
+            self.epsilon = 0.9 # Useless value
+            self.n_states = n_states + dim_msg * n_senders
+            self.model = load_model(model_path)
+            
 
     def create_nnet(self) -> Sequential:
         """
