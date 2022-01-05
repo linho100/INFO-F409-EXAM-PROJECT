@@ -94,19 +94,13 @@ class GridWorld:
         layout_walls = self.layouts[layout]["walls"]
         for wall in layout_walls:
             self.grid[wall[0], wall[1]] = 1
-        
-        # Deal with forbidden positions --> REMOVE?
-        self.forbid = [((self.row//2, self.col//2))]
 
         # Place goal
-        self.grid[(3,3)] = 3
-        """
         while True:
             self.goal = (randint(0,self.row-1), randint(0,self.col-1))
-        if(self.goal not in self.forbid):
-            self.grid[self.goal] = 3
-        break
-        """
+            if(self.goal != self.agent_pos) and (self.goal not in layout_walls):
+                self.grid[self.goal] = 3
+                break
 
         return self.one_hot_enc_player()
 

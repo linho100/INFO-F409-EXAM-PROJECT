@@ -1,127 +1,271 @@
-from typing import Iterable, Tuple
+from typing import Iterable
 from math import floor, exp, log
-from numpy import arange, concatenate, delete
-from tqdm import tqdm
-from csv import writer as csv_writer
-from os import mkdir
+from numpy import concatenate, delete, array
+from os import mkdir, remove
+import shutil
+from os.path import exists
+from pandas import DataFrame
+from time import time
 
+from gridWorld import GridWorld
 from sender import SenderAgent
 from receiver import DeepQLearnerAgent
-from gridWorld import GridWorld
 
-
-def run_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], training: bool, layout_type: int) -> float:
+def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], layout_type: int):
     """
     Interact with the environment for one episode using actions derived from the nnet.
     :param env: The environment.
     :param receiver: The receiver agent.
-    :param sender: The sender agent.
+    :param senders_list:
     :param training: If true the q_table will be updated using q-learning. The flag is also passed to the action selector.
+    :param layout_type:
     :return: The average cumulated reward.
     """
     done = False
     obs = env.reset(layout_type)
     context_vector = env.one_hot_enc_goal()
     step = 0
+    
     messages_encoded = [-1]
     senders_nb = len(senders_list)
 
     for i in range(senders_nb):
         senders_list[i].goal_location = context_vector
         message = senders_list[i].send_message()
-        messages_encoded = concatenate((messages_encoded, message)) #store the messages sent
-        obs = concatenate((obs, message)) #TODO: implement msg from the i-th sender
+        messages_encoded = concatenate((messages_encoded, message)) # Store the messages sent
+        obs = concatenate((obs, message)) # TODO: implement msg from the i-th sender
 
     messages_encoded = delete(messages_encoded, 0)
 
     while not done:
-        action = receiver.act(obs, training)
+        action = receiver.act(obs, True)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded)) #TODO: implement msg from senders
-
-        # Receiver learning
-        if training:
-            receiver.learn(obs, action, reward, done, obs_prime)
+        obs_prime = concatenate((obs_prime, messages_encoded)) # TODO: implement msg from senders
+        receiver.learn(obs, action, reward, done, obs_prime)
 
         obs = obs_prime
         step += 1
 
     # Senders learning
-    if training:
-        for i in range(senders_nb):
-            senders_list[i].learn(reward)
-
-    return reward/step
-
-def train(env: GridWorld, num_episodes: int, gamma: float, channel_capacity: int, senders_nb: int, epsilon_s: float, epsilon_r: float, layout_type: int) -> Tuple[list, DeepQLearnerAgent]:
-    """
-    Training loop.
-    :param env: The environment.
-    :param num_episodes: The number of episodes.
-    :return: ...
-    """
-    receiver = DeepQLearnerAgent(n_senders=senders_nb, epsilon_decay = 1-epsilon_r, gamma=gamma)
-    messages_nb = floor(exp(log(channel_capacity)/senders_nb))
-    senders_list = list()
-
     for i in range(senders_nb):
-        senders_list.append(SenderAgent(epsilon_s, messages_nb))
+        senders_list[i].learn(reward)
 
-    avg_rewards_list = []
-    for i in tqdm(range(num_episodes)):
-        if i % 50 == 0:
-            print("Episode {} of {}".format(i + 1, num_episodes))
-            for j in range(15):
-                # evaluation
-                run_episode(env, receiver, senders_list, training=False, layout_type=layout_type)
-                i += j
-        avg_rewards_list.append(run_episode(env, receiver, senders_list, training=True, layout_type=layout_type))
+    return step
 
-    return avg_rewards_list, receiver.model
-
-def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity):
-    for senders_nb in range(1,6):
-        env = GridWorld(p_term=1-gamma)
-        rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
-
-        # Save results to csv file
-        save_results("./experiment_1.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
-
-def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders_nb):
-    for channel_capacity in [3,4,5,8,9,16,25,27,32]:
-        env = GridWorld(p_term=1-gamma)
-        rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
-
-        # Save results to csv file
-        save_results("./experiment_2.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"c_{channel_capacity}")
-
-def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
-    # Save data to csv
-    with open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'a') as file:
-        writer = csv_writer(file)
-        writer.writerows(data)
+def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], layout_type: int):
+    """
+    Interact with the environment for one episode using actions derived from the nnet.
+    :param env: The environment.
+    :param receiver: The receiver agent.
+    :param senders_list:
+    :param training: If true the q_table will be updated using q-learning. The flag is also passed to the action selector.
+    :param layout_type:
+    :return: The average cumulated reward.
+    """
+    done = False
+    obs = env.reset(layout_type)
+    context_vector = env.one_hot_enc_goal()
+    step = 0
     
-    # Save models
-    folder_name = f"experiment_{experiment_number.to_s}_layout_{layout}"
+    messages_encoded = [-1]
+    senders_nb = len(senders_list)
+    for i in range(senders_nb):
+        senders_list[i].goal_location = context_vector
+        message = senders_list[i].send_message()
+        messages_encoded = concatenate((messages_encoded, message)) # Store the messages sent
+        obs = concatenate((obs, message)) # TODO: implement msg from the i-th sender
+    messages_encoded = delete(messages_encoded, 0)
 
-    mkdir(f"./experiments/{folder_name}")
-    mkdir(f"./experiments/{folder_name}/senders")
+    while not done:
+        action = receiver.act(obs, False)
+        obs_prime, reward, done = env.step(action)
+        obs_prime = concatenate((obs_prime, messages_encoded)) # TODO: implement msg from senders
+        obs = obs_prime
+        step += 1
 
-    receiver_model.save(f"/models/{folder_name}/r_{subtitle}")
-    
-    counter = 0
-    for sender_model in senders_models:
-        sender_model.save(f"/models/{folder_name}/s_{subtitle}_{counter}")
-        counter += 1
+    return reward / step
 
-if __name__ == '__main__':
-    num_episodes = int(1e4)
-    gamma = 0.8
-    epsilon_s = 0.005
+def exp_1(layout = 0, senders_nb = 1):
+    # Hyperparameters
+    gamma = 0.9
+    n_states = 25
+    dim_msg = 5
+    channel_capacity = 16
+    messages_nb = floor(exp(log(channel_capacity) / senders_nb))
+
     epsilon_r = 0.005
+    epsilon_s = 0.005
 
-    layout_type = 0 # [Sara = Pong(4), Linh = 4-four(3), Ilyes = 2-room(2), JF = flower(1)]
+    # Create the model
+    env = GridWorld(p_term=1-gamma)
+    senders = [SenderAgent(messages_nb = messages_nb, epsilon = epsilon_s) for _ in range(senders_nb)]
+    receiver = DeepQLearnerAgent(dim_msg = dim_msg, n_states = n_states, n_senders = senders_nb, epsilon_decay = 1 - epsilon_r, gamma=gamma)
+    
+    # Training
+    steps_to_backup = 50000
+    last_backup = 0
+    
+    # Testing episodes : 20 episodes every 2000 steps
+    step = 1
+    max_step = 5000000
+    last_evaluation = 0
+    steps_to_evaluation = 2000
+    number_episode_per_evaluation = 20
+    global_results = []
+    start_t = time()
+    while step < max_step:
+        # Train
+        episode_step = training_episode(env, receiver, senders, layout_type=layout)
+        step += episode_step
 
-    experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity=16)
-    experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacities=[3,4,5,8,9,16,25,27,32,36,64], senders_nb=3)
+        # Evaluate and feedback
+        if step >= last_evaluation + steps_to_evaluation:
+            last_evaluation = step
+            evaluation_reward = 0
+            for _ in range(number_episode_per_evaluation):
+                evaluation_reward += evaluation_episode(env, receiver, senders, layout_type=layout)
+            global_results.append([step, evaluation_reward/number_episode_per_evaluation])
+
+            # Feedback
+            delta_t = time() - start_t
+            remaining = convert_to_time(round(delta_t/step*(max_step-step),0))
+            print(f"Step: {step} ({round(step/max_step*100,2)}%) - Elapsed time: {convert_to_time(round(delta_t, 0))} - Estimated remaining time: {remaining}")
+            
+        # Save results
+        if step >= last_backup + steps_to_backup:
+            last_backup = step
+            print(f"Starting backup now ... (Step: {step})")
+            save_results(results=global_results,r_model=receiver.model,s_models=[s.model for s in senders],experiment_number=1,layout=layout,subtitle=f"n_{senders_nb}")
+            print("Backup is done!")
+    
+def exp_2(channel_capacity, layout): # Channel capacity
+    # Hyperparameters
+    gamma = 0.9
+    n_states = 25
+    senders_nb = 1
+    dim_msg = 5
+    messages_nb = floor(exp(log(channel_capacity) / senders_nb))
+
+    epsilon_r = 0.005
+    epsilon_s = 0.005
+
+    # Create the model
+    env = GridWorld(p_term=1-gamma)
+    senders = [SenderAgent(messages_nb = messages_nb, epsilon = epsilon_s) for _ in range(senders_nb)]
+    receiver = DeepQLearnerAgent(dim_msg = dim_msg, n_states = n_states, n_senders = senders_nb, epsilon_decay = 1 - epsilon_r, gamma=gamma)
+    
+    # Train
+    step = 1
+    max_step = 250000
+    start_t = time()
+    steps_to_feedback = 2000
+    last_feedback = 0
+    while step < max_step:
+        episode_step = training_episode(env, receiver, senders, layout_type=layout)
+        step += episode_step
+        
+        # Feedback
+        if step >= last_feedback + steps_to_feedback:
+            last_feedback = step
+            # Feedback
+            delta_t = time() - start_t
+            remaining = convert_to_time(round(delta_t/step*(max_step-step),0))
+            print(f"Step: {step} ({round(step/max_step*100,2)}%) | Elapsed time: {convert_to_time(round(delta_t, 0))} - Left: {remaining}")
+            
+    evaluation_avg_reward = 0
+    n_evaluation_episodes = 200
+    for _ in range(n_evaluation_episodes):
+        evaluation_avg_reward += evaluation_episode(env, receiver, senders, layout_type=layout)
+    evaluation_avg_reward /= n_evaluation_episodes
+    
+    # Save results
+    save_results(results=[[step, evaluation_avg_reward]],
+                 r_model = receiver.model,
+                 s_models = [s.model for s in senders],
+                 experiment_number=2,
+                 layout=layout,
+                 subtitle=f"c_{channel_capacity}")
+
+def convert_to_time(seconds):
+    seconds = max(seconds, 0)
+    days = seconds // (24%3600)
+    seconds = seconds % (24 * 3600)
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+      
+    return "%d day(s) - %d:%02d:%02d" % (days,hour, minutes, seconds)
+
+def save_results(results,r_model,s_models,experiment_number,layout,subtitle):
+    # Create directories
+    folder_name = f"experiment_{experiment_number}_layout_{layout}"
+    create_directories(folder_name)
+    
+    # Create new CSV file
+    csv_filename = f"./experiments/{folder_name}/experiment_{experiment_number}_{subtitle}.csv"
+    if exists(csv_filename):
+      remove(csv_filename)
+
+    # Saving results to csv
+    DataFrame(array(results), columns=["Step","Average reward"]).to_csv(csv_filename)
+    
+    # Delete previous models
+    s_filepaths = [f"./experiments/{folder_name}/models/senders/s_{subtitle}_{i}" for i in range(len(s_models))]
+    for path in s_filepaths:
+        if exists(path):
+            shutil.rmtree(path, ignore_errors=True)
+    r_filepath = f"./experiments/{folder_name}/models/receivers/r_{subtitle}"
+    if exists(r_filepath):
+        shutil.rmtree(r_filepath, ignore_errors=True)
+
+    # Save models
+    r_model.save(r_filepath)
+    
+    for i in range(len(s_models)):
+        model = s_models[i]
+        model.save(s_filepaths[i])
+    
+def create_directories(folder_name):
+    try:
+        mkdir(f"./experiments/")
+    except FileExistsError:
+        pass
+
+    try:
+        mkdir(f"./experiments/{folder_name}/")
+    except FileExistsError:
+        pass
+
+    try:
+        mkdir(f"./experiments/{folder_name}/models/")
+    except:
+        pass
+
+    try:
+        mkdir(f"./experiments/{folder_name}/models/senders")
+        mkdir(f"./experiments/{folder_name}/models/receivers")
+    except FileExistsError:
+        pass
+    
+if __name__ == '__main__':
+    # Type 1 experiments
+    # Sara: l=0,s=[1,3]
+    # Ilyes: l=2,s=[1,3]
+    # Linh: l=4,s=[1,3]
+    layouts = [0,2,4]
+    senders_nb = [1,3]
+    
+    l = 0
+    s = 1
+    exp_1(layout = l, senders_nb = s)
+
+    # Type 2 experiments
+    # JF
+    channel_capacities = [3,4,5,8,9,16]
+    layouts = [1,3]
+    
+    c = 3
+    l = 1
+    exp_2(layout=l,channel_capacity=c)
     
