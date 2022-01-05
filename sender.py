@@ -1,10 +1,11 @@
 from typing import Iterable
 
-from numpy import insert, zeros, ndarray, array, random, argmax
+from numpy import insert, zeros, ndarray, array, argmax, random
 from numpy.core.records import array
 
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import Sequential
+from tensorflow.keras.models import load_model
 
 def one_hot_encoding(message: int) -> Iterable[int]:
     max_bits_nb = 5
@@ -29,30 +30,42 @@ class SenderAgent:
     in order to find the goal location.
     """
 
-    def __init__(self, epsilon: float, messages_nb: int, goal_location: ndarray = [0, 0]):
+    def __init__(self, 
+                epsilon: float = 0.9, 
+                messages_nb: int = 3, 
+                goal_location: ndarray = [0, 0], 
+                model_path = None):
         """
         :param goal_location: The goal location on the grid world.
         :param epsilon: The action exploration rate.
         :param messages_nb: The number of messages the sender agent can generate.
         """
-        self.goal_location = goal_location
-        self.epsilon = epsilon
-        self.messages_nb = messages_nb
-        self.reward = 0
-        self.set_messages = 0
-        self.message_sent = 0
-        
-        # Build the single layer FNN
-        self.model = Sequential(
-            [
-                Dense(24, input_shape=(25,), activation='relu', name="input"),
-                Dense(self.messages_nb, activation='softmax', name="output")
-            ]
-        )
+        if model_path is None:
+            self.goal_location = goal_location
+            self.epsilon = epsilon
+            self.messages_nb = messages_nb
+            self.reward = 0
+            self.set_messages = 0
+            self.message_sent = 0
+            
+            # Build the single layer FNN
+            self.model = Sequential(
+                [
+                    Dense(24, input_shape=(25,), activation='relu', name="input"),
+                    Dense(self.messages_nb, activation='softmax', name="output")
+                ]
+            )
 
-        self.model.compile(optimizer='adam', loss='mse')
+            self.model.compile(optimizer='adam', loss='mse')
+        else:
+            self.epsilon = 0.9 # Useless value
+            self.messages_nb = messages_nb
+            self.set_messages = 0
+            self.message_sent = 0
+            self.model = load_model(model_path)
+            
 
-    def send_message(self) -> int:
+    def send_message(self, training: bool = True) -> int:
         """
         Method that returns a message from a given set of possible messages which
         the action-values are output from a feed-forward neural network.
@@ -65,10 +78,11 @@ class SenderAgent:
         self.set_messages = outputs
         # print(self.set_messages)
 
-        if random.rand() < self.epsilon:
-            message = random.randint(self.messages_nb)
-        else:
+        if(not training) or random.rand() > self.epsilon:
             message = argmax(self.set_messages)
+        else:
+            message = random.randint(self.messages_nb)        
+            
         self.message_sent = message
 
         # one hot-encoding
