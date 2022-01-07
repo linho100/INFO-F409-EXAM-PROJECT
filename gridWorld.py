@@ -103,6 +103,11 @@ class GridWorld:
                 break
 
         return self.one_hot_enc_player()
+    
+    def move_goal(self, new_goal):
+        self.grid[self.goal] = 0
+        self.goal = new_goal
+        self.grid[self.goal] = 3
 
     def one_hot_enc_player(self) -> ndarray:
         encoding = zeros(self.row * self.col)

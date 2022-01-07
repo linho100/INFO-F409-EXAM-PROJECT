@@ -6,6 +6,7 @@ import shutil
 from os.path import exists
 from pandas import DataFrame
 from time import time
+import multiprocessing
 
 from gridWorld import GridWorld
 from sender import SenderAgent
@@ -251,6 +252,7 @@ def create_directories(folder_name):
         pass
     
 if __name__ == '__main__':
+    # In main!!
     # Type 1 experiments
     # Sara: l=0,s=[1,3]
     # Ilyes: l=2,s=[1,3]
