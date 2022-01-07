@@ -189,7 +189,7 @@ def exp_2(channel_capacity, layout): # Channel capacity
 
 def convert_to_time(seconds):
     seconds = max(seconds, 0)
-    days = seconds // (24%3600)
+    days = seconds // (24*3600)
     seconds = seconds % (24 * 3600)
     hour = seconds // 3600
     seconds %= 3600

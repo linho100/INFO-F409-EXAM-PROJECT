@@ -133,6 +133,3 @@ dmypy.json
 
 # IDE
 .idea/
-
-# Project
-experiments/
