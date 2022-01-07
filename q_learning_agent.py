@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from numpy import ndarray
 
@@ -25,7 +26,9 @@ class QLearnerAgent:
                 num_actions: int,
                 learning_rate: float,
                 gamma: float,
-                epsilon: float) -> None:
+                epsilon_max: Optional[float] = None,
+                 epsilon_min: Optional[float] = None,
+                 epsilon_decay: Optional[float] = None):
         """
         :param num_states: Number of states.
         :param num_actions: Number of actions.
@@ -36,7 +39,10 @@ class QLearnerAgent:
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.q_table = create_q_table(num_states, num_actions)
-        self.epsilon = epsilon
+        self.epsilon_decay = epsilon_decay
+        self.epsilon_min = epsilon_min
+        self.epsilon_max = epsilon_max
+        self.epsilon = epsilon_max
     
     def greedy_action(self, observation: int) -> int:
         """
@@ -80,3 +86,6 @@ class QLearnerAgent:
         :param next_obs: The next observation.
         """
         self.q_table[obs, act] += self.learning_rate * (rew + self.gamma * self.q_table[next_obs].max() - self.q_table[obs, act])
+        if done == True:
+            epsilon_max = max(self.epsilon_max * self.epsilon_decay, self.epsilon_min)
+            self.epsilon_max = epsilon_max
