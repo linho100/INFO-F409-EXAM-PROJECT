@@ -181,12 +181,14 @@ if __name__ == '__main__':
         models_paths={
             "Flower": ["./experiments/experiment_2_layout_1/models/senders/s_c_3_0",
                        "./experiments/experiment_2_layout_1/models/senders/s_c_4_0",
-                       "./experiments/experiment_2_layout_1/models/senders/s_c_9_0"],
+                       "./experiments/experiment_2_layout_1/models/senders/s_c_9_0",
+                       "./experiments/experiment_2_layout_1/models/senders/s_c_16_0"],
             "Four room": ["./experiments/experiment_2_layout_3/models/senders/s_c_3_0",
                           "./experiments/experiment_2_layout_3/models/senders/s_c_4_0",
-                          "./experiments/experiment_2_layout_3/models/senders/s_c_9_0"]
+                          "./experiments/experiment_2_layout_3/models/senders/s_c_9_0",
+                          "./experiments/experiment_2_layout_3/models/senders/s_c_16_0"]
         },
         layouts=[1, 3],
-        capacities=[3, 4, 9],
+        capacities=[3, 4, 9, 16],
         output_filepath="./results/results_exp_2.csv"
     )
