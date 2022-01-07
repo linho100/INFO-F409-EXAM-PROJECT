@@ -6,6 +6,7 @@ import shutil
 from os.path import exists
 from pandas import DataFrame
 from time import time
+import multiprocessing
 
 from gridWorld import GridWorld
 from sender import SenderAgent
@@ -70,43 +71,6 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
     messages_encoded = [-1]
     senders_nb = len(senders_list)
     for i in range(senders_nb):
-<<<<<<< HEAD
-        senders_list.append(SenderAgent(epsilon_s, messages_nb))
-
-    avg_rewards_list = []
-    for i in tqdm(range(num_episodes)):
-        if i % 50 == 0:
-            print("Episode {} of {}".format(i + 1, num_episodes))
-            for j in range(15):
-                # evaluation
-                run_episode(env, receiver, senders_list, training=False, layout_type=layout_type)
-                i += j
-        avg_rewards_list.append(run_episode(env, receiver, senders_list, training=True, layout_type=layout_type))
-
-    return avg_rewards_list, receiver.model, senders_list
-
-def experiment_1(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, channel_capacity):
-    for senders_nb in range(1,6):
-        env = GridWorld(p_term=1-gamma)
-        rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
-
-        # Save results to csv file
-        save_results("./experiment_1.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"n_{senders_nb}")
-
-def experiment_2(num_episodes, gamma, epsilon_s, epsilon_r, layout_type, senders_nb):
-    for channel_capacity in [3,4,5,8,9,16,25,27,32]:
-        env = GridWorld(p_term=1-gamma)
-        rewards, receiver_model, senders_models = train(env, num_episodes, gamma, channel_capacity, senders_nb, epsilon_s, epsilon_r, layout_type)
-
-        # Save results to csv file
-        save_results("./experiment_2.csv", rewards, receiver_model, senders_models, layout=layout_type, experiment_number=1, subtitle=f"c_{channel_capacity}")
-
-def save_results(data, receiver_model, senders_models, layout, experiment_number, subtitle):
-    # Save data to csv
-    with open(f"./experiments/experiment_{experiment_number}_{subtitle}.csv", 'a') as file:
-        writer = csv_writer(file)
-        writer.writerows(data)
-=======
         senders_list[i].goal_location = context_vector
         message = senders_list[i].send_message()
         messages_encoded = concatenate((messages_encoded, message)) # Store the messages sent
@@ -137,7 +101,6 @@ def exp_1(layout = 0, senders_nb = 1):
     env = GridWorld(p_term=1-gamma)
     senders = [SenderAgent(messages_nb = messages_nb, epsilon = epsilon_s) for _ in range(senders_nb)]
     receiver = DeepQLearnerAgent(dim_msg = dim_msg, n_states = n_states, n_senders = senders_nb, epsilon_decay = 1 - epsilon_r, gamma=gamma)
->>>>>>> 3983791bfd07db8317182a317e50df60c8fdbf64
     
     # Training
     steps_to_backup = 50000
@@ -287,23 +250,18 @@ def create_directories(folder_name):
         pass
     
 if __name__ == '__main__':
+    # In main!!
     # Type 1 experiments
     # Sara: l=0,s=[1,3]
     # Ilyes: l=2,s=[1,3]
     # Linh: l=4,s=[1,3]
     layouts = [0,2,4]
     senders_nb = [1,3]
-    
-    l = 0
-    s = 1
-    exp_1(layout = l, senders_nb = s)
-
-    # Type 2 experiments
-    # JF
-    channel_capacities = [3,4,5,8,9,16]
-    layouts = [1,3]
-    
-    c = 3
-    l = 1
-    exp_2(layout=l,channel_capacity=c)
+    layout = 2
+    sender_nb = 1
+    sender_nb_2 = 3
+    # exp_1(layout = layout, senders_nb = sender_nb)
+    pool = multiprocessing.Pool(processes = 8)
+    pool.starmap(exp_1, [(layout, sender_nb), (layout, sender_nb_2)])
+    pool.close()
     
