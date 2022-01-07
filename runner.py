@@ -8,8 +8,9 @@ from shutil import rmtree
 from time import time
 
 from gridWorld import GridWorld
-from sender import SenderAgent
-from receiver import DeepQLearnerAgent
+from sender_agent import SenderAgent
+from receiver_agent import DeepQLearnerAgent
+from random_agent import RandomAgent
 
 
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
@@ -90,6 +91,67 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
         step += 1
 
     return reward / step
+
+
+def exp_0_random(layout=0):
+    # Hyperparameters
+    gamma = 0.9
+    n_states = 25
+
+    # Create the model
+    env = GridWorld(p_term=1 - gamma)
+    receiver = RandomAgent()
+
+    # Training
+    steps_to_backup = 50000
+    last_backup = 0
+
+    # Testing episodes : 20 episodes every 2000 steps
+    step = 1
+    max_step = 600000
+    last_evaluation = 0
+    steps_to_evaluation = 2000
+    number_episode_per_evaluation = 20
+    global_results = []
+    start_t = time()
+    while step < max_step:
+        step += 1
+
+        if step >= last_evaluation + steps_to_evaluation:
+            last_evaluation = step
+            evaluation_reward = 0
+            for _ in range(number_episode_per_evaluation):
+                done = False
+                env.reset(layout)
+                ev_step = 0
+
+                while not done:
+                    _, reward, done = env.step(receiver.act())
+                    ev_step += 1
+
+                evaluation_reward += reward / ev_step
+
+            global_results.append(
+                [step, evaluation_reward / number_episode_per_evaluation])
+
+            # Feedback
+            delta_t = time() - start_t
+            remaining = convert_to_time(
+                round(delta_t / step * (max_step - step), 0))
+            print(
+                f"Step: {step} ({round(step / max_step * 100, 2)}%) - Elapsed time: {convert_to_time(round(delta_t, 0))} - Estimated remaining time: {remaining}")
+
+        # Save results
+        if step >= last_backup + steps_to_backup:
+            last_backup = step
+            print(f"Starting backup now ... (Step: {step})")
+            save_results(results=global_results, r_model=None, s_models=None,
+                         experiment_number=0, layout=layout, subtitle="random")
+            print("Backup is done!")
+
+
+def exp_0_q_learner(layout=0):
+    pass
 
 
 def exp_1(layout=0, senders_nb=1):
@@ -236,21 +298,24 @@ def save_results(results, r_model, s_models, experiment_number, layout, subtitle
               "Step", "Average reward"]).to_csv(csv_filename)
 
     # Delete previous models
-    s_filepaths = [
-        f"./experiments/{folder_name}/models/senders/s_{subtitle}_{i}" for i in range(len(s_models))]
-    for path in s_filepaths:
-        if exists(path):
-            rmtree(path, ignore_errors=True)
+    if s_models:
+        s_filepaths = [
+            f"./experiments/{folder_name}/models/senders/s_{subtitle}_{i}" for i in range(len(s_models))]
+        for path in s_filepaths:
+            if exists(path):
+                rmtree(path, ignore_errors=True)
     r_filepath = f"./experiments/{folder_name}/models/receivers/r_{subtitle}"
     if exists(r_filepath):
         rmtree(r_filepath, ignore_errors=True)
 
     # Save models
-    r_model.save(r_filepath)
+    if r_model:
+        r_model.save(r_filepath)
 
-    for i in range(len(s_models)):
-        model = s_models[i]
-        model.save(s_filepaths[i])
+    if s_models:
+        for i in range(len(s_models)):
+            model = s_models[i]
+            model.save(s_filepaths[i])
 
 
 def create_directories(folder_name):
@@ -277,10 +342,13 @@ def create_directories(folder_name):
 
 
 if __name__ == '__main__':
-    # Type 1 experiments
+    # Type 0 experiments (Random and Q-learner agents)
     layouts = [0, 2, 4]
-    senders_nb = [1, 3]
+    for l in layouts:
+        exp_0_random(l)
 
+    # Type 1 experiments
+    senders_nb = [1, 3]
     for l in layouts:
         for n in senders_nb:
             exp_1(layout=l, senders_nb=n)

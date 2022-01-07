@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from os import mkdir
 
 from gridWorld import GridWorld
-from sender import SenderAgent
+from sender_agent import SenderAgent
 
 
 def reward_step_plot(filepaths: List[str], labels: List[str], layout_name: str, plot_output_path: str):
