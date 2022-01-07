@@ -1,18 +1,15 @@
 from typing import Iterable
 from math import floor, exp, log
 from numpy import concatenate, delete, array
-from os import mkdir, remove
-import shutil
-from os.path import exists
 from pandas import DataFrame
+from os import mkdir, remove
+from os.path import exists
+from shutil import rmtree
 from time import time
-import multiprocessing
 
 from gridWorld import GridWorld
 from sender import SenderAgent
 from receiver import DeepQLearnerAgent
-
-import multiprocessing
 
 
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
@@ -37,15 +34,16 @@ def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: 
     for i in range(senders_nb):
         senders_list[i].goal_location = context_vector
         message = senders_list[i].send_message()
-        messages_encoded = concatenate((messages_encoded, message))  # Store the messages sent
-        obs = concatenate((obs, message))  # TODO: implement msg from the i-th sender
+        messages_encoded = concatenate(
+            (messages_encoded, message))  # Store the messages sent
+        obs = concatenate((obs, message))
 
     messages_encoded = delete(messages_encoded, 0)
 
     while not done:
         action = receiver.act(obs, True)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded))  # TODO: implement msg from senders
+        obs_prime = concatenate((obs_prime, messages_encoded))
         receiver.learn(obs, action, reward, done, obs_prime)
 
         obs = obs_prime
@@ -79,14 +77,15 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
     for i in range(senders_nb):
         senders_list[i].goal_location = context_vector
         message = senders_list[i].send_message()
-        messages_encoded = concatenate((messages_encoded, message))  # Store the messages sent
-        obs = concatenate((obs, message))  # TODO: implement msg from the i-th sender
+        messages_encoded = concatenate(
+            (messages_encoded, message))  # Store the messages sent
+        obs = concatenate((obs, message))
     messages_encoded = delete(messages_encoded, 0)
 
     while not done:
         action = receiver.act(obs, False)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded))  # TODO: implement msg from senders
+        obs_prime = concatenate((obs_prime, messages_encoded))
         obs = obs_prime
         step += 1
 
@@ -106,7 +105,8 @@ def exp_1(layout=0, senders_nb=1):
 
     # Create the model
     env = GridWorld(p_term=1 - gamma)
-    senders = [SenderAgent(messages_nb=messages_nb, epsilon=epsilon_s) for _ in range(senders_nb)]
+    senders = [SenderAgent(messages_nb=messages_nb, epsilon=epsilon_s)
+               for _ in range(senders_nb)]
     receiver = DeepQLearnerAgent(dim_msg=dim_msg, n_states=n_states, n_senders=senders_nb, epsilon_decay=1 - epsilon_r,
                                  gamma=gamma)
 
@@ -116,7 +116,7 @@ def exp_1(layout=0, senders_nb=1):
 
     # Testing episodes : 20 episodes every 2000 steps
     step = 1
-    max_step = 5000000
+    max_step = 600000
     last_evaluation = 0
     steps_to_evaluation = 2000
     number_episode_per_evaluation = 20
@@ -124,7 +124,8 @@ def exp_1(layout=0, senders_nb=1):
     start_t = time()
     while step < max_step:
         # Train
-        episode_step = training_episode(env, receiver, senders, layout_type=layout)
+        episode_step = training_episode(
+            env, receiver, senders, layout_type=layout)
         step += episode_step
 
         # Evaluate and feedback
@@ -132,12 +133,15 @@ def exp_1(layout=0, senders_nb=1):
             last_evaluation = step
             evaluation_reward = 0
             for _ in range(number_episode_per_evaluation):
-                evaluation_reward += evaluation_episode(env, receiver, senders, layout_type=layout)
-            global_results.append([step, evaluation_reward / number_episode_per_evaluation])
+                evaluation_reward += evaluation_episode(
+                    env, receiver, senders, layout_type=layout)
+            global_results.append(
+                [step, evaluation_reward / number_episode_per_evaluation])
 
             # Feedback
             delta_t = time() - start_t
-            remaining = convert_to_time(round(delta_t / step * (max_step - step), 0))
+            remaining = convert_to_time(
+                round(delta_t / step * (max_step - step), 0))
             print(
                 f"Step: {step} ({round(step / max_step * 100, 2)}%) - Elapsed time: {convert_to_time(round(delta_t, 0))} - Estimated remaining time: {remaining}")
 
@@ -163,7 +167,8 @@ def exp_2(channel_capacity, layout):  # Channel capacity
 
     # Create the model
     env = GridWorld(p_term=1 - gamma)
-    senders = [SenderAgent(messages_nb=messages_nb, epsilon=epsilon_s) for _ in range(senders_nb)]
+    senders = [SenderAgent(messages_nb=messages_nb, epsilon=epsilon_s)
+               for _ in range(senders_nb)]
     receiver = DeepQLearnerAgent(dim_msg=dim_msg, n_states=n_states, n_senders=senders_nb, epsilon_decay=1 - epsilon_r,
                                  gamma=gamma)
 
@@ -174,7 +179,8 @@ def exp_2(channel_capacity, layout):  # Channel capacity
     steps_to_feedback = 2000
     last_feedback = 0
     while step < max_step:
-        episode_step = training_episode(env, receiver, senders, layout_type=layout)
+        episode_step = training_episode(
+            env, receiver, senders, layout_type=layout)
         step += episode_step
 
         # Feedback
@@ -182,14 +188,16 @@ def exp_2(channel_capacity, layout):  # Channel capacity
             last_feedback = step
             # Feedback
             delta_t = time() - start_t
-            remaining = convert_to_time(round(delta_t / step * (max_step - step), 0))
+            remaining = convert_to_time(
+                round(delta_t / step * (max_step - step), 0))
             print(
                 f"Step: {step} ({round(step / max_step * 100, 2)}%) | Elapsed time: {convert_to_time(round(delta_t, 0))} - Left: {remaining}")
 
     evaluation_avg_reward = 0
     n_evaluation_episodes = 200
     for _ in range(n_evaluation_episodes):
-        evaluation_avg_reward += evaluation_episode(env, receiver, senders, layout_type=layout)
+        evaluation_avg_reward += evaluation_episode(
+            env, receiver, senders, layout_type=layout)
     evaluation_avg_reward /= n_evaluation_episodes
 
     # Save results
@@ -224,16 +232,18 @@ def save_results(results, r_model, s_models, experiment_number, layout, subtitle
         remove(csv_filename)
 
     # Saving results to csv
-    DataFrame(array(results), columns=["Step", "Average reward"]).to_csv(csv_filename)
+    DataFrame(array(results), columns=[
+              "Step", "Average reward"]).to_csv(csv_filename)
 
     # Delete previous models
-    s_filepaths = [f"./experiments/{folder_name}/models/senders/s_{subtitle}_{i}" for i in range(len(s_models))]
+    s_filepaths = [
+        f"./experiments/{folder_name}/models/senders/s_{subtitle}_{i}" for i in range(len(s_models))]
     for path in s_filepaths:
         if exists(path):
-            shutil.rmtree(path, ignore_errors=True)
+            rmtree(path, ignore_errors=True)
     r_filepath = f"./experiments/{folder_name}/models/receivers/r_{subtitle}"
     if exists(r_filepath):
-        shutil.rmtree(r_filepath, ignore_errors=True)
+        rmtree(r_filepath, ignore_errors=True)
 
     # Save models
     r_model.save(r_filepath)
@@ -267,28 +277,18 @@ def create_directories(folder_name):
 
 
 if __name__ == '__main__':
-    # In main!!
     # Type 1 experiments
-    # Sara: l=0,s=[1,3]
-    # Ilyes: l=2,s=[1,3]
-    # Linh: l=4,s=[1,3]
     layouts = [0, 2, 4]
     senders_nb = [1, 3]
 
-    layout = 4
-    sender_nb = 1
-    sender_nb_2 = 3
-    # exp_1(layout = layout, senders_nb = sender_nb)
-
-    pool = multiprocessing.Pool(processes=6)
-    pool.starmap(exp_1, [(layout, sender_nb), (layout, sender_nb_2)])
-    pool.close()
+    for l in layouts:
+        for n in senders_nb:
+            exp_1(layout=l, senders_nb=n)
 
     # Type 2 experiments
-    # JF
-    # channel_capacities = [3,4,5,8,9,16]
-    # layouts = [1,3]
+    channel_capacities = [3, 4, 5, 8, 9, 16]
+    layouts = [1, 3]
 
-    # c = 3
-    # l = 1
-    # exp_2(layout=l,channel_capacity=c)
+    for l in layouts:
+        for c in channel_capacities:
+            exp_2(layout=l, channel_capacity=c)
