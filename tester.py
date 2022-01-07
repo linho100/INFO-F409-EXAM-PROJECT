@@ -46,10 +46,13 @@ def main(layout, senders_nb, channel_capacity, senders_filepath, receiver_filepa
 
 
 if __name__ == '__main__':
-    main(layout=1,
-         senders_nb=1,
+    layout = 2
+    main(layout=layout,
+         senders_nb=3,
          channel_capacity=16,
          senders_filepath=[
-             "./experiments/experiment_1_layout_1/models/senders/s_n_1_0"
+             f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_0",
+             f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_1",
+             f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_2"
          ],
-         receiver_filepath="./experiments/experiment_1_layout_1/models/receivers/r_n_1")
+         receiver_filepath=f"./experiments/experiment_1_layout_{layout}/models/receivers/r_n_3")
