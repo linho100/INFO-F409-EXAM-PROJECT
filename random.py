@@ -1,6 +1,7 @@
 from random import sample as randint
 
-class randomAgent:
+
+class RandomAgent:
     """
     The agent class
     """
@@ -8,8 +9,7 @@ class randomAgent:
     def __init__(self):
         """
         """
-        self.n_action = 4 
-
+        self.n_action = 4
 
     def act(self) -> int:
         """
@@ -19,4 +19,4 @@ class randomAgent:
         should act greedily.
         :return: The action.
         """
-        return randint(0, 3)  
+        return randint(0, 3)
