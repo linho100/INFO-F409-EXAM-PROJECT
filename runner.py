@@ -8,10 +8,10 @@ from shutil import rmtree
 from time import time
 
 from gridWorld import GridWorld
-from sender_agent import SenderAgent
-from receiver_agent import DeepQLearnerAgent
-from random_agent import RandomAgent
-from q_learner_agent import QLearnerAgent
+from agents.sender_agent import SenderAgent
+from agents.receiver_agent import DeepQLearnerAgent
+from agents.random_agent import RandomAgent
+from agents.q_learner_agent import QLearnerAgent
 
 
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
