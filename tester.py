@@ -2,8 +2,8 @@ from numpy import concatenate, delete
 from math import floor, exp, log
 
 from gridWorld import GridWorld
-from .agents.sender_agent import SenderAgent
-from .agents.receiver_agent import DeepQLearnerAgent
+from agents.sender_agent import SenderAgent
+from agents.receiver_agent import DeepQLearnerAgent
 
 
 def main(layout, senders_nb, channel_capacity, senders_filepath, receiver_filepath):

@@ -1,12 +1,13 @@
 from typing import Dict, List
 from math import floor, exp, log
 from pandas import DataFrame, read_csv
-from numpy import array as narray
+from numpy import concatenate, array as narray
 import matplotlib.pyplot as plt
 from os import mkdir
 
 from gridWorld import GridWorld
-from agents.sender_agent import SenderAgent
+from agents.sender_agent import SenderAgent, one_hot_encoding
+from agents.receiver_agent import DeepQLearnerAgent
 
 
 def reward_step_plot(filepaths: List[str], labels: List[str], layout_name: str, plot_output_path: str):
@@ -57,6 +58,7 @@ def senders_predictions_to_csv(models_paths: Dict, layouts: List[int], capacitie
         models_paths (Dict[List]): Dict - keys: layout_name, values: List of paths to senders models
         layouts (List[int]): List of layout_ids
         capacities (List[int]): List of capacities correponding to each model
+        output_filepath (str): Path to save the csv file to
     """
     senders_nb = 1
     layouts_names = list(models_paths.keys())
@@ -101,6 +103,59 @@ def senders_predictions_to_csv(models_paths: Dict, layouts: List[int], capacitie
 
     # Part-2: Save data to csv file
     df = DataFrame.from_dict(data)
+    df.to_csv(output_filepath)
+
+
+def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int, output_filepath: str):
+    """
+    Loads the model, generate env with the matching layout and get the prediction of the corresponding model for each possible message.
+    The results are saved in a new CSV file to be imported into Excel in order to display them.
+
+    Args:
+        model_path (str): Path to receiver model
+        messages (List[int]): List of possible integer messages
+        layouts (int): layout_ids
+        capacities (List[int]): List of capacities correponding to each model
+        output_filepath (str): Path to save the csv file to
+    """
+    senders_nb = 1
+    titles = [f"m = {m}" for m in messages]
+    messages = [one_hot_encoding(m) for m in messages]
+
+    data = dict()
+    # Setup env
+    env = GridWorld(p_term=1e-10)
+    env.reset(layout)
+
+    # Setup agent
+    agent = DeepQLearnerAgent(dim_msg=5, n_states=25,
+                              n_senders=senders_nb, model_path=model_path)
+
+    # Part-1: Retrieve predictions from models
+    for m in range(len(messages)):
+        message = messages[m]
+        data_m = [[None for _ in range(5)] for _ in range(5)]
+
+        # Find walls, player and goals
+        walls = env.layouts[layout]["walls"]
+        for w in walls:
+            data_m[w[0]][w[1]] = -2
+        positions = list(set([(i, j) for i in range(5)
+                              for j in range(5)]) - set(walls))
+
+        # For each position and the given message, retrieve action from agent
+        for p in positions:
+            env.update(p)
+            obs = env.one_hot_enc_player()
+            obs = concatenate((obs, message))
+            action = agent.act(obs)
+            data_m[p[0]][p[1]] = action
+
+        data[titles[m]] = narray(data_m)
+
+    # Part-2: Save data to csv file
+    print(data)
+    df = DataFrame.from_dict({4: data})
     df.to_csv(output_filepath)
 
 
@@ -190,5 +245,9 @@ if __name__ == '__main__':
         },
         layouts=[1, 3],
         capacities=[3, 4, 9, 16],
-        output_filepath="./results/results_exp_2.csv"
-    )
+        output_filepath="./results/sender_pred.csv")
+
+    receiver_prediction_to_csv(model_path="./experiments/experiment_2_layout_1/models/receivers/r_c_4",
+                               messages=[0, 1, 2, 3],
+                               layout=1,
+                               output_filepath="./results/receiver_pred.csv")
