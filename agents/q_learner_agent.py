@@ -1,5 +1,6 @@
 from typing import Optional
-from numpy import zeros, random, ndarray, argmax
+from numpy import zeros, ndarray, argmax
+from random import randint, uniform
 
 
 def create_q_table(num_states: int, num_actions: int) -> ndarray:
@@ -10,9 +11,7 @@ def create_q_table(num_states: int, num_actions: int) -> ndarray:
     :param num_actions: Number of actions.
     :return: q_table: Initial q_table.
     """
-    q_table = zeros((num_states, num_actions))
-
-    return q_table
+    return zeros((num_states, num_actions))
 
 
 class QLearnerAgent:
@@ -38,21 +37,20 @@ class QLearnerAgent:
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.q_table = create_q_table(num_states, num_actions)
+        self.n_actions = num_actions
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
         self.epsilon_max = epsilon_max
         self.epsilon = epsilon_max
 
-    def greedy_action(self, observation: int) -> int:
+    def greedy_action(self, obs: int) -> int:
         """
         Return the greedy action.
 
         :param observation: The observation.
         :return: The action.
         """
-        greedy_action = self.q_table[observation].argmax()
-
-        return greedy_action
+        return argmax(self.q_table[obs])
 
     def act(self, obs: ndarray, training: bool = True) -> int:
         """
@@ -65,16 +63,12 @@ class QLearnerAgent:
         """
         obs = argmax(obs)
 
-        if training:
-            # Based on the observation and q-table
-            if random.rand() <= self.epsilon:
-                action = random.randint(0, 4)
-            else:
-                action = self.greedy_action(obs)
+        epsilon_rate = uniform(0, 1)
+        # Exploration-Exploitation trade-off
+        if (not training) or epsilon_rate > self.epsilon:
+            return self.greedy_action(obs)
         else:
-            action = self.greedy_action(obs)
-
-        return action
+            return randint(0, 3)
 
     def learn(self, obs: ndarray, act: int, rew: float, done: bool, next_obs: ndarray) -> None:
         """
@@ -91,7 +85,7 @@ class QLearnerAgent:
 
         self.q_table[obs, act] += self.learning_rate * \
             (rew + self.gamma *
-             self.q_table[next_obs].max() - self.q_table[obs, act])
+             max(self.q_table[next_obs, :]) - self.q_table[obs, act])
         if done:
             self.epsilon = max(
                 self.epsilon * self.epsilon_decay, self.epsilon_min)

@@ -134,8 +134,8 @@ if __name__ == '__main__':
     reward_step_plot(filepaths=[
         "./experiments/experiment_1_layout_2/experiment_1_n_1.csv",
         "./experiments/experiment_1_layout_2/experiment_1_n_3.csv",
-        "./experiments/experiment_0_layout_0/experiment_0_random.csv",
-        "./experiments/experiment_0_layout_0/experiment_0_q_learner.csv"
+        "./experiments/experiment_0_layout_2/experiment_0_random.csv",
+        "./experiments/experiment_0_layout_2/experiment_0_q_learner.csv"
     ],
         labels=["1 sender", "3 senders", "Random", "Q-learner"],
         layout_name="Two room",
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     reward_step_plot(filepaths=[
         "./experiments/experiment_1_layout_4/experiment_1_n_1.csv",
         "./experiments/experiment_1_layout_4/experiment_1_n_3.csv",
-        "./experiments/experiment_0_layout_0/experiment_0_random.csv",
-        "./experiments/experiment_0_layout_0/experiment_0_q_learner.csv"
+        "./experiments/experiment_0_layout_4/experiment_0_random.csv",
+        "./experiments/experiment_0_layout_4/experiment_0_q_learner.csv"
     ],
         labels=["1 sender", "3 senders", "Random", "Q-learner"],
         layout_name="Pong",
