@@ -1,14 +1,14 @@
 from random import randint
 
-class randomAgent:
+
+class RandomAgent:
     """
     The agent class
     """
 
     def __init__(self):
-        """
-        """
         self.n_action = 4 
+
 
     def act(self) -> int:
         """
@@ -19,3 +19,4 @@ class randomAgent:
         :return: The action.
         """
         return randint(0, self.n_action - 1)  
+
