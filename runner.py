@@ -11,6 +11,7 @@ from gridWorld import GridWorld
 from sender_agent import SenderAgent
 from receiver_agent import DeepQLearnerAgent
 from random_agent import RandomAgent
+from q_learner_agent import QLearnerAgent
 
 
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
@@ -29,30 +30,33 @@ def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: 
     context_vector = env.one_hot_enc_goal()
     step = 0
 
-    messages_encoded = [-1]
-    senders_nb = len(senders_list)
+    if senders_list:
+        messages_encoded = [-1]
+        senders_nb = len(senders_list)
 
-    for i in range(senders_nb):
-        senders_list[i].goal_location = context_vector
-        message = senders_list[i].send_message()
-        messages_encoded = concatenate(
-            (messages_encoded, message))  # Store the messages sent
-        obs = concatenate((obs, message))
+        for i in range(senders_nb):
+            senders_list[i].goal_location = context_vector
+            message = senders_list[i].send_message()
+            messages_encoded = concatenate(
+                (messages_encoded, message))  # Store the messages sent
+            obs = concatenate((obs, message))
 
-    messages_encoded = delete(messages_encoded, 0)
+        messages_encoded = delete(messages_encoded, 0)
 
     while not done:
         action = receiver.act(obs, True)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded))
+        if senders_list:
+            obs_prime = concatenate((obs_prime, messages_encoded))
         receiver.learn(obs, action, reward, done, obs_prime)
 
         obs = obs_prime
         step += 1
 
-    # Senders learning
-    for i in range(senders_nb):
-        senders_list[i].learn(reward)
+    if senders_list:
+        # Senders learning
+        for i in range(senders_nb):
+            senders_list[i].learn(reward)
 
     return step
 
@@ -73,20 +77,22 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
     context_vector = env.one_hot_enc_goal()
     step = 0
 
-    messages_encoded = [-1]
-    senders_nb = len(senders_list)
-    for i in range(senders_nb):
-        senders_list[i].goal_location = context_vector
-        message = senders_list[i].send_message()
-        messages_encoded = concatenate(
-            (messages_encoded, message))  # Store the messages sent
-        obs = concatenate((obs, message))
-    messages_encoded = delete(messages_encoded, 0)
+    if senders_list:
+        messages_encoded = [-1]
+        senders_nb = len(senders_list)
+        for i in range(senders_nb):
+            senders_list[i].goal_location = context_vector
+            message = senders_list[i].send_message()
+            messages_encoded = concatenate(
+                (messages_encoded, message))  # Store the messages sent
+            obs = concatenate((obs, message))
+        messages_encoded = delete(messages_encoded, 0)
 
     while not done:
         action = receiver.act(obs, False)
         obs_prime, reward, done = env.step(action)
-        obs_prime = concatenate((obs_prime, messages_encoded))
+        if senders_list:
+            obs_prime = concatenate((obs_prime, messages_encoded))
         obs = obs_prime
         step += 1
 
@@ -96,9 +102,7 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
 def exp_0_random(layout=0):
     # Hyperparameters
     gamma = 0.9
-    n_states = 25
 
-    # Create the model
     env = GridWorld(p_term=1 - gamma)
     receiver = RandomAgent()
 
@@ -151,7 +155,56 @@ def exp_0_random(layout=0):
 
 
 def exp_0_q_learner(layout=0):
-    pass
+    # Hyperparameters
+    gamma = 0.9
+    n_states = 25
+
+    env = GridWorld(p_term=1 - gamma)
+    receiver = QLearnerAgent(
+        num_states=n_states, gamma=gamma)
+
+    # Training
+    steps_to_backup = 50000
+    last_backup = 0
+
+    # Testing episodes : 20 episodes every 2000 steps
+    step = 1
+    max_step = 600000
+    last_evaluation = 0
+    steps_to_evaluation = 2000
+    number_episode_per_evaluation = 20
+    global_results = []
+    start_t = time()
+    while step < max_step:
+        # Train
+        episode_step = training_episode(
+            env, receiver, senders_list=None, layout_type=layout)
+        step += episode_step
+
+        # Evaluate and feedback
+        if step >= last_evaluation + steps_to_evaluation:
+            last_evaluation = step
+            evaluation_reward = 0
+            for _ in range(number_episode_per_evaluation):
+                evaluation_reward += evaluation_episode(
+                    env, receiver, senders_list=None, layout_type=layout)
+            global_results.append(
+                [step, evaluation_reward / number_episode_per_evaluation])
+
+            # Feedback
+            delta_t = time() - start_t
+            remaining = convert_to_time(
+                round(delta_t / step * (max_step - step), 0))
+            print(
+                f"Step: {step} ({round(step / max_step * 100, 2)}%) - Elapsed time: {convert_to_time(round(delta_t, 0))} - Estimated remaining time: {remaining}")
+
+        # Save results
+        if step >= last_backup + steps_to_backup:
+            last_backup = step
+            print(f"Starting backup now ... (Step: {step})")
+            save_results(results=global_results, r_model=None, s_models=None,
+                         experiment_number=0, layout=layout, subtitle="q_learner")
+            print("Backup is done!")
 
 
 def exp_1(layout=0, senders_nb=1):
@@ -346,6 +399,7 @@ if __name__ == '__main__':
     layouts = [0, 2, 4]
     for l in layouts:
         exp_0_random(l)
+        exp_0_q_learner(l)
 
     # Type 1 experiments
     senders_nb = [1, 3]

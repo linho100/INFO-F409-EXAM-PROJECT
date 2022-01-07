@@ -1,6 +1,5 @@
 from typing import Optional
-import numpy as np
-from numpy import ndarray
+from numpy import zeros, random, ndarray, argmax
 
 
 def create_q_table(num_states: int, num_actions: int) -> ndarray:
@@ -11,7 +10,7 @@ def create_q_table(num_states: int, num_actions: int) -> ndarray:
     :param num_actions: Number of actions.
     :return: q_table: Initial q_table.
     """
-    q_table = np.zeros((num_states, num_actions))
+    q_table = zeros((num_states, num_actions))
 
     return q_table
 
@@ -21,14 +20,14 @@ class QLearnerAgent:
     The non-communicating Q-learning agent class
     """
 
-    def __init__(self, 
-                num_states: int,
-                num_actions: int,
-                learning_rate: float,
-                gamma: float,
-                epsilon_max: Optional[float] = None,
-                 epsilon_min: Optional[float] = None,
-                 epsilon_decay: Optional[float] = None):
+    def __init__(self,
+                 num_states: int,
+                 num_actions: int = 4,
+                 learning_rate: float = 1e-3,
+                 gamma: float = 0.9,
+                 epsilon_max: Optional[float] = 1,
+                 epsilon_min: Optional[float] = 0.01,
+                 epsilon_decay: Optional[float] = 0.995):
         """
         :param num_states: Number of states.
         :param num_actions: Number of actions.
@@ -43,7 +42,7 @@ class QLearnerAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_max = epsilon_max
         self.epsilon = epsilon_max
-    
+
     def greedy_action(self, observation: int) -> int:
         """
         Return the greedy action.
@@ -55,7 +54,7 @@ class QLearnerAgent:
 
         return greedy_action
 
-    def act(self, observation: ndarray, training: bool = True) -> int:
+    def act(self, obs: ndarray, training: bool = True) -> int:
         """
         Return the action.
 
@@ -64,14 +63,16 @@ class QLearnerAgent:
         should act greedily.
         :return: The action.
         """
+        obs = argmax(obs)
+
         if training:
             # Based on the observation and q-table
-            if np.random.rand() <= self.epsilon:
-                action = np.random.randint(0, 4)
+            if random.rand() <= self.epsilon:
+                action = random.randint(0, 4)
             else:
-                action = self.greedy_action(observation)
+                action = self.greedy_action(obs)
         else:
-            action = self.greedy_action(observation)
+            action = self.greedy_action(obs)
 
         return action
 
@@ -85,7 +86,12 @@ class QLearnerAgent:
         :param done: Done flag.
         :param next_obs: The next observation.
         """
-        self.q_table[obs, act] += self.learning_rate * (rew + self.gamma * self.q_table[next_obs].max() - self.q_table[obs, act])
-        if done == True:
-            epsilon_max = max(self.epsilon_max * self.epsilon_decay, self.epsilon_min)
-            self.epsilon_max = epsilon_max
+        obs = argmax(obs)
+        next_obs = argmax(next_obs)
+
+        self.q_table[obs, act] += self.learning_rate * \
+            (rew + self.gamma *
+             self.q_table[next_obs].max() - self.q_table[obs, act])
+        if done:
+            self.epsilon = max(
+                self.epsilon * self.epsilon_decay, self.epsilon_min)
