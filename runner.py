@@ -11,6 +11,8 @@ from gridWorld import GridWorld
 from sender import SenderAgent
 from receiver import DeepQLearnerAgent
 
+import multiprocessing
+
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent], layout_type: int):
     """
     Interact with the environment for one episode using actions derived from the nnet.
@@ -188,7 +190,7 @@ def exp_2(channel_capacity, layout): # Channel capacity
 
 def convert_to_time(seconds):
     seconds = max(seconds, 0)
-    days = seconds // (24*3600)
+    days = seconds // (24 * 3600)
     seconds = seconds % (24 * 3600)
     hour = seconds // 3600
     seconds %= 3600
@@ -256,16 +258,21 @@ if __name__ == '__main__':
     layouts = [0,2,4]
     senders_nb = [1,3]
     
-    l = 0
-    s = 1
-    exp_1(layout = l, senders_nb = s)
+    layout = 4
+    sender_nb = 1
+    sender_nb_2 = 3
+    # exp_1(layout = layout, senders_nb = sender_nb)
+
+    pool = multiprocessing.Pool(processes = 6)
+    pool.starmap(exp_1, [(layout, sender_nb), (layout, sender_nb_2)])
+    pool.close()
 
     # Type 2 experiments
     # JF
-    channel_capacities = [3,4,5,8,9,16]
-    layouts = [1,3]
+    # channel_capacities = [3,4,5,8,9,16]
+    # layouts = [1,3]
     
-    c = 3
-    l = 1
-    exp_2(layout=l,channel_capacity=c)
+    # c = 3
+    # l = 1
+    # exp_2(layout=l,channel_capacity=c)
     
