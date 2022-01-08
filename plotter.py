@@ -148,7 +148,7 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
             env.update(p)
             obs = env.one_hot_enc_player()
             obs = concatenate((obs, message))
-            action = agent.act(obs)
+            action = agent.act(obs, training=False)
             data_m[p[0]][p[1]] = action
 
         data[titles[m]] = narray(data_m)
