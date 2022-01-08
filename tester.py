@@ -6,12 +6,21 @@ from agents.sender_agent import SenderAgent
 from agents.receiver_agent import DeepQLearnerAgent
 
 
-def main(layout, senders_nb, channel_capacity, senders_filepath, receiver_filepath):
+def main(layout, channel_capacity, senders_filepaths, receiver_filepath):
+    """
+    Allows to test a combinaison of trained sender(s)/receiver by playing games 
+    and printing the grid at each step to visually evaluate their performance.
+    :param layout: int id of layout
+    :param channel_capacity: Channel capacity for the provided models
+    :param senders_filepaths: Filepaths to the senders trained models
+    :param receiver_filepath: Filepath to the receiver trained model
+    """
     env = GridWorld(0.0001)
+    senders_nb = len(senders_filepaths)
     messages_nb = floor(exp(log(channel_capacity) / senders_nb))
 
     senders = [SenderAgent(messages_nb=messages_nb, model_path=sender_filepath)
-               for sender_filepath in senders_filepath]
+               for sender_filepath in senders_filepaths]
     receiver = DeepQLearnerAgent(
         dim_msg=5, n_states=25, n_senders=senders_nb, model_path=receiver_filepath)
 
@@ -48,9 +57,8 @@ def main(layout, senders_nb, channel_capacity, senders_filepath, receiver_filepa
 if __name__ == '__main__':
     layout = 2
     main(layout=layout,
-         senders_nb=3,
          channel_capacity=16,
-         senders_filepath=[
+         senders_filepaths=[
              f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_0",
              f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_1",
              f"./experiments/experiment_1_layout_{layout}/models/senders/s_n_3_2"
