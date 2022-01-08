@@ -11,6 +11,13 @@ from agents.receiver_agent import DeepQLearnerAgent
 
 
 def reward_step_plot(filepaths: List[str], labels: List[str], layout_name: str, plot_output_path: str):
+    """
+    Plots the average reward per training step.
+    :param filepaths: List of filepaths to the results of experiments to plot.
+    :param labels: Description of each configuration.
+    :param layout_name: Title of the experiment.
+    :param plot_output_path: Filepath to export the plot to.
+    """
     try:
         dataframes = {labels[i]: read_csv(filepaths[i])
                       for i in range(len(filepaths))}
@@ -18,6 +25,7 @@ def reward_step_plot(filepaths: List[str], labels: List[str], layout_name: str, 
         print(f"One file in '{filepaths}' has not been found")
         return
 
+    # Create plot by overlapping each df
     plt.figure()
     for label, df in dataframes.items():
         x = df["Step"]
@@ -33,6 +41,13 @@ def reward_step_plot(filepaths: List[str], labels: List[str], layout_name: str, 
 
 
 def reward_capacity_plot(filepaths: List[str], capacities: List[int], layout_name: str, plot_output_path: str):
+    """
+    Plots the evolution of the average reward reached at the end of training for various capacities values.
+    :param filepaths: List of filepaths to the results of experiments to plot.
+    :param capacities: Capacities used for each experiment.
+    :param layout_name: Title of the experiment.
+    :param plot_output_path: Filepath to export the plot to.
+    """
     x, y = capacities, list()
     try:
         for f in filepaths:
@@ -41,11 +56,13 @@ def reward_capacity_plot(filepaths: List[str], capacities: List[int], layout_nam
         print(f"One file in '{filepaths}' has not been found")
         return
 
+    # Create plot
     plt.figure()
     plt.plot(x, y, marker='o')
     plt.xlabel('Communication channel capacity (C)')
     plt.ylabel('Average reward')
     plt.title(layout_name)
+
     plt.savefig(plot_output_path)
 
 
@@ -53,12 +70,10 @@ def senders_predictions_to_csv(models_paths: Dict, layouts: List[int], capacitie
     """
     Loads the models, generate envs with the matching layout and get the prediction of the corresponding model for each possible goal location.
     The results are saved in a new CSV file to be imported into Excel in order to display them.
-
-    Args:
-        models_paths (Dict[List]): Dict - keys: layout_name, values: List of paths to senders models
-        layouts (List[int]): List of layout_ids
-        capacities (List[int]): List of capacities correponding to each model
-        output_filepath (str): Path to save the csv file to
+    :param models_paths: {keys=layout_name: values=List of paths to senders models}.
+    :param layouts: List of layout_ids.
+    :param capacities: List of capacities correponding to each model.
+    :param output_filepath: Path to save the csv file to.
     """
     senders_nb = 1
     layouts_names = list(models_paths.keys())
@@ -110,13 +125,11 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
     """
     Loads the model, generate env with the matching layout and get the prediction of the corresponding model for each possible message.
     The results are saved in a new CSV file to be imported into Excel in order to display them.
-
-    Args:
-        model_path (str): Path to receiver model
-        messages (List[int]): List of possible integer messages
-        layouts (int): layout_ids
-        capacities (List[int]): List of capacities correponding to each model
-        output_filepath (str): Path to save the csv file to
+    :param model_path: Path to receiver model.
+    :param messages: List of possible integer messages.
+    :param layouts: layout_ids.
+    :param capacities: List of capacities correponding to each model.
+    :param output_filepath: Path to save the csv file to.
     """
     senders_nb = 1
     titles = [f"m = {m}" for m in messages]
@@ -159,21 +172,30 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
 
 
 def convert_message_to_decimal(message):
+    """ 
+    Basic binary to decimal converted.
+    :param message: One-hot-encoded Message written in an array.
+    :return: The decimal integer.
+    """
     decimal = 0
     for digit in message:
         decimal = decimal * 2 + int(digit)
-
     return decimal
 
 
 if __name__ == '__main__':
+    """
+    Generates plots based on the results of the experiences realised with 'runner.py'.
+    Makes some predictions with the trained models under given circumstances and export those to csv files.
+    """
+
     # Make sure results directory exists
     try:
         mkdir(f"./results/")
     except FileExistsError:
         pass
 
-    # 1 -----------------------------------------------------------------------------------
+    # 1
     reward_step_plot(filepaths=[
         "./experiments/experiment_1_layout_0/experiment_1_n_3.csv",
         "./experiments/experiment_1_layout_0/experiment_1_n_4.csv",
@@ -205,7 +227,7 @@ if __name__ == '__main__':
         layout_name="Pong",
         plot_output_path="./results/plot_1_l_4.png")
 
-    # 2 -----------------------------------------------------------------------------------
+    # 2
     reward_capacity_plot(filepaths=[
         "./experiments/experiment_2_layout_1/experiment_2_c_3.csv",
         "./experiments/experiment_2_layout_1/experiment_2_c_4.csv",
@@ -230,7 +252,7 @@ if __name__ == '__main__':
         layout_name="Four room",
         plot_output_path="./results/plot_2_l_3.png")
 
-    # 3 -----------------------------------------------------------------------------------
+    # 3
     senders_predictions_to_csv(
         models_paths={
             "Flower": ["./experiments/experiment_2_layout_1/models/senders/s_c_3_0",
