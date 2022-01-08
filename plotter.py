@@ -154,7 +154,6 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
         data[titles[m]] = narray(data_m)
 
     # Part-2: Save data to csv file
-    print(data)
     df = DataFrame.from_dict({4: data})
     df.to_csv(output_filepath)
 
