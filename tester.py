@@ -8,7 +8,7 @@ from agents.receiver_agent import DeepQLearnerAgent
 
 def main(layout, channel_capacity, senders_filepaths, receiver_filepath):
     """
-    Allows to test a combinaison of trained sender(s)/receiver by playing games 
+    Allows to test a combination of trained sender(s)/receiver by playing games 
     and printing the grid at each step to visually evaluate their performance.
     :param layout: int id of layout
     :param channel_capacity: Channel capacity for the provided models

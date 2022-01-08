@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Tuple
 from random import random, randint
 from numpy import ndarray, zeros
 from operator import add
@@ -9,7 +9,7 @@ class GridWorld:
     Matrix Game environment with 5 possibles obstacles layouts. 1 player and 1 goal.
     """
 
-    def __init__(self, p_term):
+    def __init__(self, p_term: float):
         """
         Create a 5 by 5 grid environment. (y,x) -> (0,0) corresponds to the upper left corner
         :param p_term: probability to terminate the game at each step
@@ -28,7 +28,7 @@ class GridWorld:
                 (1, 0), (2, 0), (3, 0), (0, 2), (1, 2), (3, 2), (4, 2), (1, 4), (2, 4), (3, 4)]}
         ]
 
-    def step(self, action: int):
+    def step(self, action: int) -> Tuple[ndarray, int, bool]:
         """
         If allowed, moves the player on the grid and check wheter the goal has been reached. 
         Otherwise, leaves the player at its current position. 
@@ -62,7 +62,7 @@ class GridWorld:
 
         return self.one_hot_enc_player(), reward, done
 
-    def move(self, action: int):
+    def move(self, action: int) -> Tuple[int, int]:
         """ 
         Translate action to position move.    
         :param action: The action
@@ -78,11 +78,14 @@ class GridWorld:
             return (0, -1)
 
     def update(self, next_pos):
+        """
+        :param net_pos: Next position of the agent.
+        """
         self.grid[self.agent_pos] = 0
         self.grid[next_pos] = 2
         self.agent_pos = next_pos
 
-    def reset(self, layout: int = 0):
+    def reset(self, layout: int = 0) -> ndarray:
         """
         :param layout: Layouts index from 0 to 4. 5 is random
         :return: One-hot-encoded player's position
@@ -119,7 +122,7 @@ class GridWorld:
     def move_goal(self, new_goal):
         """ 
         Moves the goal at a desired position. Warning, this does not check if the position is allowed or not.
-        :param new_goal: New goal position 
+        :param new_goal: New goal position.
         """
         self.grid[self.goal] = 0
         self.goal = new_goal

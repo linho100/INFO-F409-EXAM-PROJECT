@@ -1,7 +1,7 @@
 from typing import Dict, List
 from math import floor, exp, log
 from pandas import DataFrame, read_csv
-from numpy import concatenate, array as narray
+from numpy import concatenate, array as narray, ndarray
 import matplotlib.pyplot as plt
 from os import mkdir
 
@@ -123,7 +123,7 @@ def senders_predictions_to_csv(models_paths: Dict, layouts: List[int], capacitie
 
 def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int, output_filepath: str):
     """
-    Loads the model, generate env with the matching layout and get the prediction of the corresponding model for each possible message.
+    Loads the model, generates env with the matching layout and gets the prediction of the corresponding model for each possible message.
     The results are saved in a new CSV file to be imported into Excel in order to display them.
     :param model_path: Path to receiver model.
     :param messages: List of possible integer messages.
@@ -171,7 +171,7 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
     df.to_csv(output_filepath)
 
 
-def convert_message_to_decimal(message):
+def convert_message_to_decimal(message: ndarray) -> int:
     """ 
     Basic binary to decimal converted.
     :param message: One-hot-encoded Message written in an array.

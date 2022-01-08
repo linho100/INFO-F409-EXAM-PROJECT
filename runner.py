@@ -15,7 +15,7 @@ from agents.q_learner_agent import QLearnerAgent
 
 
 def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
-                     layout_type: int):
+                     layout_type: int) -> int:
     """
     Interacts with the environment for one episode using actions provided by the models predictions in order to train said models.
     :param env: The environment.
@@ -64,7 +64,7 @@ def training_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: 
 
 
 def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list: Iterable[SenderAgent],
-                       layout_type: int):
+                       layout_type: int) -> float:
     """
     Interacts with the environment for one episode using actions provided by the models predictions in order to evaluate said models.
     :param env: The environment.
@@ -100,7 +100,7 @@ def evaluation_episode(env: GridWorld, receiver: DeepQLearnerAgent, senders_list
     return reward / step
 
 
-def exp_0_random(layout=0):
+def exp_0_random(layout:int = 0):
     """
     Runs a random agent for the same number of steps as for the subsequent agents to be used as a reference point.
     :param layout: Int id of the env's layout to be used.
@@ -162,7 +162,7 @@ def exp_0_random(layout=0):
             print("Backup is done!")
 
 
-def exp_0_q_learner(layout=0):
+def exp_0_q_learner(layout:int = 0):
     """
     Runs a basic q-learner agent for the same number of steps as for the subsequent agents to be used as a reference point.
     Evaluation is performed periodically during training to follow its progression.
@@ -221,7 +221,7 @@ def exp_0_q_learner(layout=0):
             print("Backup is done!")
 
 
-def exp_1(layout=0, senders_nb=1):
+def exp_1(layout:int = 0, senders_nb:int = 1):
     """
     Trains senders agents and one receiver DeepQL agent on a given grid layout.
     Evaluation is performed periodically during training to follow its progression.
@@ -289,7 +289,7 @@ def exp_1(layout=0, senders_nb=1):
             print("Backup is done!")
 
 
-def exp_2(channel_capacity, layout):
+def exp_2(channel_capacity:int, layout:int):
     """
     Trains 1 sender agents and one receiver DeepQL agent on a given grid layout with a choosen communication channel capacity.
     Evaluation is performed only at the end of training
@@ -352,7 +352,7 @@ def exp_2(channel_capacity, layout):
                  subtitle=f"c_{channel_capacity}")
 
 
-def convert_to_time(seconds):
+def convert_to_time(seconds:int):
     """
     Basic helper to convert seconds into human-readable format.
     :param seconds: Number of seconds to convert.

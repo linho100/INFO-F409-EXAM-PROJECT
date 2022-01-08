@@ -78,7 +78,7 @@ class DeepQLearnerAgent:
 
         return model
 
-    def greedy_action(self, obs) -> int:
+    def greedy_action(self, obs: ndarray) -> int:
         """
         Return the greedy action.
         :param obs: The observation.
