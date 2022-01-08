@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from os import mkdir
 
 from gridWorld import GridWorld
-from agents.sender_agent import SenderAgent, one_hot_encoding
+from agents.sender_agent import SenderAgent, convert_message_to_binary
 from agents.receiver_agent import DeepQLearnerAgent
 
 
@@ -133,7 +133,7 @@ def receiver_prediction_to_csv(model_path: str, messages: List[int], layout: int
     """
     senders_nb = 1
     titles = [f"m = {m}" for m in messages]
-    messages = [one_hot_encoding(m) for m in messages]
+    messages = [convert_message_to_binary(m) for m in messages]
 
     data = dict()
     # Setup env
